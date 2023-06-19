@@ -6,7 +6,7 @@ public class RBTreeVisualizer : Window
 {
     private RedBlackTree<int> tree;
     private double next_x = 0;
-    private double nodeDistance = 25; // Distance between nodes
+    private double nodeDistance = 30; // Distance between nodes
 
     public RBTreeVisualizer() : base("Red-Black Tree Visualizer")
     {
@@ -14,7 +14,7 @@ public class RBTreeVisualizer : Window
 
         // Add nodes to the tree
         Random random = new Random();
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 40; i++)
         {
             tree.Insert(random.Next(100));
         }
@@ -29,7 +29,7 @@ public class RBTreeVisualizer : Window
         Add(drawingArea);
 
         // Set the size of the window
-        SetDefaultSize(1600, 900);
+        SetDefaultSize(800, 600);
         ShowAll();
     }
 
@@ -60,47 +60,60 @@ public class RBTreeVisualizer : Window
         return 1 + Math.Max(CalculateTreeWidth(node.Left), CalculateTreeWidth(node.Right));
     }
 
-    double Draw(Context cr, RedBlackTree<int>.Node node, double depth)
+double Draw(Context cr, RedBlackTree<int>.Node node, double depth)
+{
+    double left_x = 0, right_x = 0;
+
+    if (node.Left != null)
     {
-        double left_x = 0, right_x = 0;
-
-        if (node.Left != null)
-        {
-            left_x = Draw(cr, node.Left, depth + 1);
-            DrawLine(cr, next_x * nodeDistance, depth * nodeDistance, left_x * nodeDistance, (depth + 1) * nodeDistance);
-        }
-
-        double my_x = next_x++;
-
-        DrawCircle(cr, my_x * nodeDistance, depth * nodeDistance, 17, node.Value.ToString());
-
-        if (node.Right != null)
-        {
-            right_x = Draw(cr, node.Right, depth + 1);
-            DrawLine(cr, my_x * nodeDistance, depth * nodeDistance, right_x * nodeDistance, (depth + 1) * nodeDistance);
-        }
-
-        return my_x;
+        left_x = Draw(cr, node.Left, depth + 1);
+        DrawLine(cr, next_x * nodeDistance, depth * nodeDistance + 0.5, left_x * nodeDistance, (depth + 1) * nodeDistance + 0.5);
     }
 
-    void DrawLine(Context cr, double x1, double y1, double x2, double y2)
+    double my_x = next_x++;
+
+    DrawCircle(cr, my_x * nodeDistance, depth * nodeDistance + 0.5, 17, node.Value.ToString(), node.IsRed);
+
+    if (node.Right != null)
     {
-        cr.MoveTo(x1, y1);
-        cr.LineTo(x2, y2);
-        cr.Stroke();
+        right_x = Draw(cr, node.Right, depth + 1);
+        DrawLine(cr, my_x * nodeDistance, depth * nodeDistance + 0.5, right_x * nodeDistance, (depth + 1) * nodeDistance + 0.5);
     }
 
-    void DrawCircle(Context cr, double x, double y, double radius, string text)
-    {
-        cr.Arc(x, y, radius, 0, 2 * Math.PI);
-        cr.Stroke();
+    return my_x;
+}
 
-        cr.SelectFontFace("Arial", FontSlant.Normal, FontWeight.Bold);
-        cr.SetFontSize(10);
-        TextExtents te = cr.TextExtents(text);
-        cr.MoveTo(x - te.Width / 2, y + te.Height / 2);
-        cr.ShowText(text);
+void DrawLine(Context cr, double x1, double y1, double x2, double y2)
+{
+    cr.MoveTo(x1, y1);
+    cr.LineTo(x2, y2);
+    cr.SetSourceRGB(0, 0, 0); // Set color to black
+    cr.Stroke();
+    cr.NewPath(); // Reset the current point
+}
+
+void DrawCircle(Context cr, double x, double y, double radius, string text, bool isRed)
+{
+    // Console.WriteLine("Drawing node with value {0} at ({1}, {2}).", text, x, y);
+    if (isRed)
+    {
+        cr.SetSourceRGB(1, 0, 0); // Set color to red
     }
+    else
+    {
+        cr.SetSourceRGB(0, 0, 0); // Set color to black
+    }
+
+    cr.Arc(x, y, radius, 0, 2 * Math.PI);
+    cr.Fill(); // Fill the circle with the current color
+
+    cr.SetSourceRGB(1, 1, 1); // Set color to white
+    cr.SelectFontFace("Arial", FontSlant.Normal, FontWeight.Bold);
+    cr.SetFontSize(10);
+    TextExtents te = cr.TextExtents(text);
+    cr.MoveTo(x - te.Width / 2, y + te.Height / 2);
+    cr.ShowText(text);
+}
 
     public static void Main()
     {
