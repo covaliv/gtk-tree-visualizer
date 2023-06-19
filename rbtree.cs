@@ -232,22 +232,5 @@ private int Depth(Node node)
     
 }
 
-private void PrintNode(Node? node, string indent)
-{
-    if (node != null)
-    {
-        string color = node.NodeColor == Color.Red ? "R" : "B";
-        string leftChild = node.Left != null ? node.Left.Value.ToString() : "null";
-        string rightChild = node.Right != null ? node.Right.Value.ToString() : "null";
-        string parent = node.Parent != null ? node.Parent.Value.ToString() : "null";
-        Console.WriteLine($"{indent}V: {node.Value} (C: {color}, L: {leftChild}, R: {rightChild}, P: {parent})");
-
-        string childIndent = indent + "  ";
-
-        PrintNode(node.Left, childIndent);
-        PrintNode(node.Right, childIndent);
-    }
-}
-
 
 }
