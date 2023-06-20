@@ -200,21 +200,21 @@ public class RedBlackTree<T> where T : IComparable<T>
     }
 
     public int Depth()
-{
-    return Depth(Root);
-}
-
-private int Depth(Node node)
-{
-    if (node == null)
     {
-        return 0;
+        return Depth(Root);
     }
 
-    int leftDepth = Depth(node.Left);
-    int rightDepth = Depth(node.Right);
+    private int Depth(Node node)
+    {
+        if (node == null)
+        {
+            return 0;
+        }
 
-    return Math.Max(leftDepth, rightDepth) + 1;
-}
+        int leftDepth = Depth(node.Left);
+        int rightDepth = Depth(node.Right);
+
+        return Math.Max(leftDepth, rightDepth) + 1;
+    }
 
 }
