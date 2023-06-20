@@ -2,10 +2,17 @@
 using Cairo;
 using System;
 
-public class RBTreeVisualizer : Window
+public class TreeVisualizer : Window
 {
+    private enum TreeType
+    {
+        RedBlack,
+        AVL
+    }
 
-    private RedBlackTree<int> tree;
+    private RedBlackTree<int> rbTree;
+    private AVLTree<int> avlTree;
+    private TreeType currentTreeType;
     private double next_x = 0;
     private double nodeDistance = 25; // Distance between nodes
     private Random random = new Random();
@@ -14,9 +21,11 @@ public class RBTreeVisualizer : Window
     private Entry upperBoundEntry;
 
 
-    public RBTreeVisualizer() : base("Red-Black Tree Visualizer")
+    public TreeVisualizer() : base("Tree Visualizer")
     {
-        tree = new RedBlackTree<int>();
+        rbTree = new RedBlackTree<int>();
+        avlTree = new AVLTree<int>();
+        currentTreeType = TreeType.RedBlack;
 
         // Create a VBox layout
         Box vbox = new Box(Orientation.Vertical, 10);
@@ -51,13 +60,13 @@ public class RBTreeVisualizer : Window
 
         // Create a new Entry for the lower bound
         lowerBoundEntry = new Entry();
-    lowerBoundEntry.PlaceholderText = "Enter lower bound";
-    buttonBox.Add(lowerBoundEntry);
+        lowerBoundEntry.PlaceholderText = "Enter lower bound";
+        buttonBox.Add(lowerBoundEntry);
 
-    // Create a new Entry for the upper bound
-    upperBoundEntry = new Entry();
-    upperBoundEntry.PlaceholderText = "Enter upper bound";
-    buttonBox.Add(upperBoundEntry);
+        // Create a new Entry for the upper bound
+        upperBoundEntry = new Entry();
+        upperBoundEntry.PlaceholderText = "Enter upper bound";
+        buttonBox.Add(upperBoundEntry);
 
 
         // Create the Insert Random Value button
@@ -70,12 +79,28 @@ public class RBTreeVisualizer : Window
         deleteRandomButton.Clicked += DeleteRandomButton_Clicked;
         buttonBox.Add(deleteRandomButton);
 
+        // Create a combo box for the tree type
+        ComboBoxText treeTypeComboBox = new ComboBoxText();
+        treeTypeComboBox.AppendText("Red-Black Tree");
+        treeTypeComboBox.AppendText("AVL Tree");
+        treeTypeComboBox.Active = 0; // Set Red-Black Tree as the default
+        treeTypeComboBox.Changed += TreeTypeComboBox_Changed;
+        buttonBox.Add(treeTypeComboBox);
+
         // Add the VBox to the window
         Add(vbox);
 
         // Set the size of the window
         SetDefaultSize(1400, 600);
         ShowAll();
+    }
+
+
+    private void TreeTypeComboBox_Changed(object sender, EventArgs e)
+    {
+        ComboBoxText comboBox = (ComboBoxText)sender;
+        currentTreeType = (TreeType)comboBox.Active;
+        QueueDraw();
     }
 
     private int? ShowInputDialog()
@@ -114,7 +139,8 @@ public class RBTreeVisualizer : Window
             if (lowerBound <= upperBound)
             {
                 int randomValue = random.Next(lowerBound, upperBound + 1);
-                tree.Insert(randomValue);
+                rbTree.Insert(randomValue);
+                avlTree.Insert(randomValue);
                 QueueDraw();
             }
             else
@@ -130,10 +156,11 @@ public class RBTreeVisualizer : Window
 
     private void DeleteRandomButton_Clicked(object sender, EventArgs e)
     {
-        if (tree.Root != null)
+        if (rbTree.Root != null)
         {
-            int randomValue = GetRandomValueFromTree(tree.Root);
-            tree.Delete(randomValue);
+            int randomValue = GetRandomValueFromTree(rbTree.Root);
+            rbTree.Delete(randomValue);
+            avlTree.Delete(randomValue);
             QueueDraw();
         }
         else
@@ -186,7 +213,8 @@ public class RBTreeVisualizer : Window
     {
         if (int.TryParse(nodeValueEntry.Text, out int nodeValue))
         {
-            tree.Insert(nodeValue);
+            rbTree.Insert(nodeValue);
+            avlTree.Insert(nodeValue);
             QueueDraw();
             nodeValueEntry.Text = ""; // Clear the text box after successful insertion
         }
@@ -201,7 +229,8 @@ public class RBTreeVisualizer : Window
     {
         if (int.TryParse(nodeValueEntry.Text, out int nodeValue))
         {
-            tree.Delete(nodeValue);
+            rbTree.Delete(nodeValue);
+            avlTree.Delete(nodeValue);
             QueueDraw();
             nodeValueEntry.Text = ""; // Clear the text box after successful deletion
         }
@@ -223,15 +252,23 @@ public class RBTreeVisualizer : Window
         cr.LineWidth = 2.0;
 
         // Calculate the width of the tree
-        double treeWidth = CalculateTreeWidth(tree.Root);
+        double treeWidth = CalculateTreeWidth(rbTree.Root);
 
         // Start drawing from the middle
         next_x = treeWidth / 2;
 
         // Start drawing from root
-        Draw(cr, tree.Root, 3);
+        if (currentTreeType == TreeType.RedBlack)
+        {
+            Draw(cr, rbTree.Root, 3);
+        }
+        else
+        {
+            Draw(cr, avlTree.Root, 3);
+        }
     }
-    double CalculateTreeWidth(RedBlackTree<int>.Node? node)
+
+    double CalculateTreeWidth(dynamic node)
     {
         if (node == null)
         {
@@ -241,34 +278,35 @@ public class RBTreeVisualizer : Window
         return 1 + Math.Max(CalculateTreeWidth(node.Left), CalculateTreeWidth(node.Right));
     }
 
-    double Draw(Context cr, RedBlackTree<int>.Node node, double depth)
+double Draw(Context cr, dynamic node, double depth)
+{
+    if (node == null)
     {
-        if (node == null)
-        {
-            return 0;
-        }
-
-        double left_x = 0, right_x = 0;
-
-        if (node.Left != null)
-        {
-            left_x = Draw(cr, node.Left, depth + 1.5);
-            DrawLine(cr, next_x * nodeDistance, depth * nodeDistance, left_x * nodeDistance, (depth + 1.5) * nodeDistance, 17);
-        }
-
-        double my_x = next_x++;
-
-        DrawCircle(cr, my_x * nodeDistance, depth * nodeDistance, 17, node.Value.ToString(), node.IsRed);
-
-        if (node.Right != null)
-        {
-            right_x = Draw(cr, node.Right, depth + 1.5);
-            DrawLine(cr, my_x * nodeDistance, depth * nodeDistance, right_x * nodeDistance, (depth + 1.5) * nodeDistance, 17);
-        }
-
-        return my_x;
+        return 0;
     }
 
+    double left_x = 0, right_x = 0;
+
+    if (node.Left != null)
+    {
+        left_x = Draw(cr, node.Left, depth + 1.5);
+        DrawLine(cr, next_x * nodeDistance, depth * nodeDistance, left_x * nodeDistance, (depth + 1.5) * nodeDistance, 17);
+    }
+
+    double my_x = next_x++;
+
+    bool isRed = node.GetType() == typeof(RedBlackTree<int>.Node) ? node.IsRed : false;
+    
+    if (node.Right != null)
+    {
+        right_x = Draw(cr, node.Right, depth + 1.5);
+        DrawLine(cr, my_x * nodeDistance, depth * nodeDistance, right_x * nodeDistance, (depth + 1.5) * nodeDistance, 17);
+    }
+
+    DrawCircle(cr, my_x * nodeDistance, depth * nodeDistance, 17, node.Value.ToString(), isRed);
+
+    return my_x;
+}
     void DrawLine(Context cr, double x1, double y1, double x2, double y2, double radius)
     {
         // Calculate the angle of the line
@@ -288,16 +326,16 @@ public class RBTreeVisualizer : Window
         cr.Stroke();
         cr.NewPath(); // Reset the current point
     }
-    void DrawCircle(Context cr, double x, double y, double radius, string text, bool isRed = false)
+void DrawCircle(Context cr, double x, double y, double radius, string text, bool isRed = false)
+{
+    if (isRed)
     {
-        if (isRed)
-        {
-            cr.SetSourceRGB(1, 0, 0); // Set color to red
-        }
-        else
-        {
-            cr.SetSourceRGB(0, 0, 0); // Set color to black
-        }
+        cr.SetSourceRGB(1, 0, 0); // Red color for Red-Black Tree red nodes
+    }
+    else
+    {
+        cr.SetSourceRGB(0, 0, 0); // Black color for AVL Tree nodes and Red-Black Tree black nodes
+    }
 
         cr.Arc(x, y, radius, 0, 2 * Math.PI);
         cr.Fill(); // Fill the circle with the current color
@@ -329,7 +367,7 @@ public class RBTreeVisualizer : Window
     public static void Main()
     {
         Application.Init();
-        new RBTreeVisualizer();
+        new TreeVisualizer();
         Application.Run();
     }
 }
