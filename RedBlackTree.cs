@@ -1,17 +1,18 @@
 using System;
-using System.Collections.Generic;
 
-public class RedBlackTree<T> where T : IComparable<T>
+public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
 {
     public enum Color { Red, Black }
 
-    public class Node
+    public class Node : Tree<T>.Node
     {
-        public T Value;
-        public Node? Left;
-        public Node? Right;
-        public Node? Parent;
-        public Color NodeColor;
+        public T Value { get; set; }
+        Tree<T>.Node? Tree<T>.Node.Left => Left;
+        Tree<T>.Node? Tree<T>.Node.Right => Right;
+        public Node? Left { get; set; }
+        public Node? Right { get; set; }
+        public Node? Parent { get; set; }
+        public Color NodeColor { get; set; }
 
         public Node(T value)
         {
@@ -24,16 +25,12 @@ public class RedBlackTree<T> where T : IComparable<T>
 
     private Node? root;
 
-    public Node Root
+    Tree<T>.Node? Tree<T>.Root => root;
+
+    public Node? Root
     {
-        get
-        {
-            if (root == null)
-            {
-                throw new NullReferenceException("The root is null.");
-            }
-            return root;
-        }
+        get { return root; }
+        private set { root = value; }
     }
 
     public void Insert(T value)
@@ -216,5 +213,202 @@ public class RedBlackTree<T> where T : IComparable<T>
 
         return Math.Max(leftDepth, rightDepth) + 1;
     }
+
+    public void Delete(T value)
+{
+    Node? nodeToDelete = FindNode(root, value);
+    if (nodeToDelete == null) return;
+
+    DeleteNode(nodeToDelete);
+}
+
+private Node? FindNode(Node? node, T value)
+{
+    if (node == null) return null;
+
+    int comparisonResult = value.CompareTo(node.Value);
+    if (comparisonResult < 0)
+    {
+        return FindNode(node.Left, value);
+    }
+    else if (comparisonResult > 0)
+    {
+        return FindNode(node.Right, value);
+    }
+    else
+    {
+        return node;
+    }
+}
+
+private void DeleteNode(Node nodeToDelete)
+{
+    if (nodeToDelete.Left != null && nodeToDelete.Right != null)
+    {
+        Node replacement = GetMaxNode(nodeToDelete.Left);
+        nodeToDelete.Value = replacement.Value;
+        nodeToDelete = replacement;
+    }
+
+    Node? child = nodeToDelete.Left ?? nodeToDelete.Right;
+
+    if (nodeToDelete.IsRed)
+    {
+        ReplaceNode(nodeToDelete, child);
+    }
+    else if (child != null && child.IsRed)
+    {
+        child.NodeColor = Color.Black;
+        ReplaceNode(nodeToDelete, child);
+    }
+    else
+    {
+        Node? sibling = Sibling(nodeToDelete);
+        if (sibling != null && sibling.IsRed)
+        {
+            nodeToDelete.Parent.NodeColor = Color.Red;
+            sibling.NodeColor = Color.Black;
+
+            if (nodeToDelete == nodeToDelete.Parent.Left)
+            {
+                RotateLeft(nodeToDelete.Parent);
+            }
+            else
+            {
+                RotateRight(nodeToDelete.Parent);
+            }
+        }
+
+        sibling = Sibling(nodeToDelete);
+        ReplaceNode(nodeToDelete, child);
+
+        DeleteCase2(child);
+    }
+}
+
+private Node GetMaxNode(Node node)
+{
+    while (node.Right != null)
+    {
+        node = node.Right;
+    }
+
+    return node;
+}
+
+private Node? Sibling(Node node)
+{
+    if (node.Parent == null) return null;
+
+    if (node == node.Parent.Left)
+    {
+        return node.Parent.Right;
+    }
+    else
+    {
+        return node.Parent.Left;
+    }
+}
+
+private void ReplaceNode(Node oldNode, Node? newNode)
+{
+    if (oldNode.Parent == null)
+    {
+        root = newNode;
+    }
+    else if (oldNode == oldNode.Parent.Left)
+    {
+        oldNode.Parent.Left = newNode;
+    }
+    else
+    {
+        oldNode.Parent.Right = newNode;
+    }
+
+    if (newNode != null)
+    {
+        newNode.Parent = oldNode.Parent;
+    }
+}
+
+private void DeleteCase2(Node? node)
+{
+    if (node == null) return;
+
+    Node? sibling = Sibling(node);
+    if (sibling != null && !sibling.IsRed && (sibling.Left == null || !sibling.Left.IsRed) && (sibling.Right == null || !sibling.Right.IsRed))
+    {
+        sibling.NodeColor = Color.Red;
+        if (node.Parent.IsRed)
+        {
+            node.Parent.NodeColor = Color.Black;
+        }
+        else
+        {
+            DeleteCase2(node.Parent);
+        }
+    }
+    else
+    {
+        DeleteCase3(node);
+    }
+}
+
+private void DeleteCase3(Node? node)
+{
+    if (node == null) return;
+
+    Node? sibling = Sibling(node);
+    if (sibling != null && !sibling.IsRed)
+    {
+        if (node == node.Parent.Left &&
+            (sibling.Right == null || !sibling.Right.IsRed) &&
+            sibling.Left != null && sibling.Left.IsRed)
+        {
+            sibling.NodeColor = Color.Red;
+            sibling.Left.NodeColor = Color.Black;
+            RotateRight(sibling);
+        }
+        else if (node == node.Parent.Right &&
+                 (sibling.Left == null || !sibling.Left.IsRed) &&
+                 sibling.Right != null && sibling.Right.IsRed)
+        {
+            sibling.NodeColor = Color.Red;
+            sibling.Right.NodeColor = Color.Black;
+            RotateLeft(sibling);
+        }
+    }
+
+    DeleteCase4(node);
+}
+
+private void DeleteCase4(Node? node)
+{
+    if (node == null) return;
+
+    Node? sibling = Sibling(node);
+    if (sibling != null)
+    {
+        sibling.NodeColor = node.Parent.NodeColor;
+        node.Parent.NodeColor = Color.Black;
+
+        if (node == node.Parent.Left)
+        {
+            if (sibling.Right != null)
+            {
+                sibling.Right.NodeColor = Color.Black;
+            }
+            RotateLeft(node.Parent);
+        }
+        else
+        {
+            if (sibling.Left != null)
+            {
+                sibling.Left.NodeColor = Color.Black;
+            }
+            RotateRight(node.Parent);
+        }
+    }
+}
 
 }
