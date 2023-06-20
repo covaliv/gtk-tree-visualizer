@@ -1,0 +1,20 @@
+# .gitignor for C# projects
+
+# Ignore build output directories
+bin/
+obj/
+
+# Ignore user-specific files
+*.user
+*.suo
+
+# Ignore Visual Studio temporary files
+*.cache
+*.pidb
+*.log
+*.bak
+
+# Ignore other temporary files
+*.tmp
+*.swp
+*~e
