@@ -1,220 +1,135 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Gtk;
+using Cairo;
+using System;
 
-public class RedBlackTree<T> where T : IComparable<T>
+public class RBTreeVisualizer : Window
 {
-    public enum Color { Red, Black }
+    private RedBlackTree<int> tree;
+    private double next_x = 0;
+    private double nodeDistance = 30; // Distance between nodes
 
-    public class Node
+    public RBTreeVisualizer() : base("Red-Black Tree Visualizer")
     {
-        public T Value;
-        public Node? Left;
-        public Node? Right;
-        public Node? Parent;
-        public Color NodeColor;
+        tree = new RedBlackTree<int>();
 
-        public Node(T value)
+        // Add nodes to the tree
+        Random random = new Random();
+        for (int i = 0; i < 40; i++)
         {
-            Value = value;
-            NodeColor = Color.Red;
+            tree.Insert(random.Next(100));
         }
 
-        public bool IsRed => NodeColor == Color.Red;
+        // Create a new DrawingArea to display the tree
+        DrawingArea drawingArea = new DrawingArea();
+
+        // Connect the Draw event to the OnDraw method
+        drawingArea.Drawn += OnDraw;
+
+        // Add the DrawingArea to the window
+        Add(drawingArea);
+
+        // Set the size of the window
+        SetDefaultSize(800, 600);
+        ShowAll();
     }
 
-    private Node? root;
-
-    public Node Root
+    void OnDraw(object o, DrawnArgs args)
     {
-        get
-        {
-            if (root == null)
-            {
-                throw new NullReferenceException("The root is null.");
-            }
-            return root;
-        }
+        var cr = args.Cr;
+
+        // Set line width
+        cr.LineWidth = 2.0;
+
+        // Calculate the width of the tree
+        double treeWidth = CalculateTreeWidth(tree.Root);
+
+        // Start drawing from the middle
+        next_x = treeWidth / 2;
+
+        // Start drawing from root
+        Draw(cr, tree.Root, 3);
     }
 
-    public void Insert(T value)
+    double CalculateTreeWidth(RedBlackTree<int>.Node node)
     {
-        if (root == null)
+        if (node == null)
         {
-            root = new Node(value) { NodeColor = Color.Black };
-            Console.WriteLine($"Inserted {value} as root.");
+            return 0;
         }
-        else
-        {
-            Node currentNode = root;
-            Node newNode = new Node(value);
 
-            while (true)
-            {
-                int comparison = value.CompareTo(currentNode.Value);
-                if (comparison < 0)
-                {
-                    if (currentNode.Left == null)
-                    {
-                        currentNode.Left = newNode;
-                        newNode.Parent = currentNode;
-                        Console.WriteLine($"Inserted {value} as left child of {currentNode.Value}.");
-                        break;
-                    }
-                    currentNode = currentNode.Left;
-                }
-                else if (comparison > 0)
-                {
-                    if (currentNode.Right == null)
-                    {
-                        currentNode.Right = newNode;
-                        newNode.Parent = currentNode;
-                        Console.WriteLine($"Inserted {value} as right child of {currentNode.Value}.");
-                        break;
-                    }
-                    currentNode = currentNode.Right;
-                }
-                else
-                {
-                    Console.WriteLine($"Value {value} already exists in the tree.");
-                    return;
-                }
-            }
-
-            FixTreeAfterInsert(newNode);
-        }
+        return 1 + Math.Max(CalculateTreeWidth(node.Left), CalculateTreeWidth(node.Right));
     }
 
-    private void FixTreeAfterInsert(Node node)
-    {
-        while (node != root && node.Parent.NodeColor == Color.Red)
-        {
-            if (node.Parent == node.Parent.Parent.Left)
-            {
-                Node uncle = node.Parent.Parent.Right;
-                if (uncle != null && uncle.NodeColor == Color.Red)
-                {
-                    node.Parent.NodeColor = Color.Black;
-                    uncle.NodeColor = Color.Black;
-                    node.Parent.Parent.NodeColor = Color.Red;
-                    node = node.Parent.Parent;
-                }
-                else
-                {
-                    if (node == node.Parent.Right)
-                    {
-                        node = node.Parent;
-                        RotateLeft(node);
-                    }
-                    node.Parent.NodeColor = Color.Black;
-                    node.Parent.Parent.NodeColor = Color.Red;
-                    RotateRight(node.Parent.Parent);
-                }
-            }
-            else
-            {
-                Node uncle = node.Parent.Parent.Left;
-                if (uncle != null && uncle.NodeColor == Color.Red)
-                {
-                    node.Parent.NodeColor = Color.Black;
-                    uncle.NodeColor = Color.Black;
-                    node.Parent.Parent.NodeColor = Color.Red;
-                    node = node.Parent.Parent;
-                }
-                else
-                {
-                    if (node == node.Parent.Left)
-                    {
-                        node = node.Parent;
-                        RotateRight(node);
-                    }
-                    node.Parent.NodeColor = Color.Black;
-                    node.Parent.Parent.NodeColor = Color.Red;
-                    RotateLeft(node.Parent.Parent);
-                }
-            }
-        }
-
-        root.NodeColor = Color.Black;
-    }
-
-    private void RotateLeft(Node node)
-    {
-        Node rightChild = node.Right;
-        node.Right = rightChild.Left;
-
-        if (rightChild.Left != null)
-        {
-            rightChild.Left.Parent = node;
-        }
-
-        rightChild.Parent = node.Parent;
-
-        if (node.Parent == null)
-        {
-            root = rightChild;
-        }
-        else if (node == node.Parent.Left)
-        {
-            node.Parent.Left = rightChild;
-        }
-        else
-        {
-            node.Parent.Right = rightChild;
-        }
-
-        rightChild.Left = node;
-        node.Parent = rightChild;
-
-        Console.WriteLine($"Rotated left around {node.Value}.");
-    }
-
-    private void RotateRight(Node node)
-    {
-        Node leftChild = node.Left;
-        node.Left = leftChild.Right;
-
-        if (leftChild.Right != null)
-        {
-            leftChild.Right.Parent = node;
-        }
-
-        leftChild.Parent = node.Parent;
-
-        if (node.Parent == null)
-        {
-            root = leftChild;
-        }
-        else if (node == node.Parent.Right)
-        {
-            node.Parent.Right = leftChild;
-        }
-        else
-        {
-            node.Parent.Left = leftChild;
-        }
-
-        leftChild.Right = node;
-        node.Parent = leftChild;
-
-        Console.WriteLine($"Rotated right around {node.Value}.");
-    }
-
-    public int Depth()
+double Draw(Context cr, RedBlackTree<int>.Node node, double depth)
 {
-    return Depth(Root);
+    double left_x = 0, right_x = 0;
+
+if (node.Left != null)
+{
+    left_x = Draw(cr, node.Left, depth + 1);
+    DrawLine(cr, next_x * nodeDistance, depth * nodeDistance + 0.5, left_x * nodeDistance, (depth + 1) * nodeDistance + 0.5, 17);
 }
 
-private int Depth(Node node)
+    double my_x = next_x++;
+
+    DrawCircle(cr, my_x * nodeDistance, depth * nodeDistance + 0.5, 17, node.Value.ToString(), node.IsRed);
+
+if (node.Right != null)
 {
-    if (node == null)
-    {
-        return 0;
-    }
-
-    int leftDepth = Depth(node.Left);
-    int rightDepth = Depth(node.Right);
-
-    return Math.Max(leftDepth, rightDepth) + 1;
+    right_x = Draw(cr, node.Right, depth + 1);
+    DrawLine(cr, my_x * nodeDistance, depth * nodeDistance + 0.5, right_x * nodeDistance, (depth + 1) * nodeDistance + 0.5, 17);
 }
 
+    return my_x;
+}
+
+void DrawLine(Context cr, double x1, double y1, double x2, double y2, double radius)
+{
+    // Calculate the angle of the line
+    double angle = Math.Atan2(y2 - y1, x2 - x1);
+
+    // Adjust the start point to be on the edge of the circle
+    x1 = x1 + Math.Cos(angle) * radius;
+    y1 = y1 + Math.Sin(angle) * radius;
+
+    // Adjust the end point to be on the edge of the circle
+    x2 = x2 - Math.Cos(angle) * radius;
+    y2 = y2 - Math.Sin(angle) * radius;
+
+    cr.MoveTo(x1, y1);
+    cr.LineTo(x2, y2);
+    cr.SetSourceRGB(0, 0, 0); // Set color to black
+    cr.Stroke();
+    cr.NewPath(); // Reset the current point
+}
+
+void DrawCircle(Context cr, double x, double y, double radius, string text, bool isRed)
+{
+    // Console.WriteLine("Drawing node with value {0} at ({1}, {2}).", text, x, y);
+    if (isRed)
+    {
+        cr.SetSourceRGB(1, 0, 0); // Set color to red
+    }
+    else
+    {
+        cr.SetSourceRGB(0, 0, 0); // Set color to black
+    }
+
+    cr.Arc(x, y, radius, 0, 2 * Math.PI);
+    cr.Fill(); // Fill the circle with the current color
+
+    cr.SetSourceRGB(1, 1, 1); // Set color to white
+    cr.SelectFontFace("Arial", FontSlant.Normal, FontWeight.Bold);
+    cr.SetFontSize(10);
+    TextExtents te = cr.TextExtents(text);
+    cr.MoveTo(x - te.Width / 2, y + te.Height / 2);
+    cr.ShowText(text);
+}
+
+    public static void Main()
+    {
+        Application.Init();
+        new RBTreeVisualizer();
+        Application.Run();
+    }
 }
