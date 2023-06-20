@@ -217,20 +217,4 @@ private int Depth(Node node)
     return Math.Max(leftDepth, rightDepth) + 1;
 }
 
-    public void PrintTree()
-{
-    if (root == null)
-    {
-        Console.WriteLine("The tree is empty.");
-    }
-    else
-    {
-        Console.WriteLine("Red-Black Tree:");
-        PrintNode(root, string.Empty);
-    }
-
-    
-}
-
-
 }
