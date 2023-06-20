@@ -7,6 +7,7 @@ public class RBTreeVisualizer : Window
     private RedBlackTree<int> tree;
     private double next_x = 0;
     private double nodeDistance = 30; // Distance between nodes
+    private Random random = new Random();
 
 public RBTreeVisualizer() : base("Red-Black Tree Visualizer")
 {
@@ -99,7 +100,6 @@ private void DeleteNodeButton_Clicked(object sender, EventArgs e)
 
 private void InsertRandomButton_Clicked(object sender, EventArgs e)
 {
-    Random random = new Random();
     tree.Insert(random.Next(1000));
 
     // Redraw the tree after inserting the random value
