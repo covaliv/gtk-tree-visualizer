@@ -8,30 +8,103 @@ public class RBTreeVisualizer : Window
     private double next_x = 0;
     private double nodeDistance = 30; // Distance between nodes
 
-    public RBTreeVisualizer() : base("Red-Black Tree Visualizer")
+public RBTreeVisualizer() : base("Red-Black Tree Visualizer")
+{
+    tree = new RedBlackTree<int>();
+
+    // Create a VBox layout
+    Box vbox = new Box(Orientation.Vertical, 10);
+
+    // Create a new DrawingArea to display the tree
+    DrawingArea drawingArea = new DrawingArea();
+
+    // Connect the Draw event to the OnDraw method
+    drawingArea.Drawn += OnDraw;
+
+    // Add the DrawingArea to the VBox
+    vbox.PackStart(drawingArea, true, true, 0);
+
+    // Create a button box for the buttons
+    Box buttonBox = new Box(Orientation.Horizontal, 10);
+    buttonBox.Margin = 5;
+    vbox.PackStart(buttonBox, false, false, 0);
+
+    // Create the Add Node button
+    Button addNodeButton = new Button("Add Node");
+    addNodeButton.Clicked += AddNodeButton_Clicked;
+    buttonBox.Add(addNodeButton);
+
+    // Create the Delete Node button
+    Button deleteNodeButton = new Button("Delete Node");
+    deleteNodeButton.Clicked += DeleteNodeButton_Clicked;
+    buttonBox.Add(deleteNodeButton);
+
+    // Create the Insert Random Value button
+    Button insertRandomButton = new Button("Insert Random Value");
+    insertRandomButton.Clicked += InsertRandomButton_Clicked;
+    buttonBox.Add(insertRandomButton);
+
+    // Add the VBox to the window
+    Add(vbox);
+
+    // Set the size of the window
+    SetDefaultSize(1400, 600);
+    ShowAll();
+}
+
+private int? ShowInputDialog()
+{
+    int? result = null;
+
+    using (Dialog dialog = new Dialog("Add Node", this, DialogFlags.Modal))
     {
-        tree = new RedBlackTree<int>();
+        dialog.AddButton("OK", ResponseType.Ok);
+        dialog.AddButton("Cancel", ResponseType.Cancel);
 
-        // Add nodes to the tree
-        Random random = new Random();
-        for (int i = 0; i < 40; i++)
+        Entry entry = new Entry();
+        entry.ActivatesDefault = true;
+        dialog.ContentArea.PackStart(entry, true, true, 0);
+        dialog.DefaultResponse = ResponseType.Ok;
+
+        dialog.ShowAll();
+        int response = dialog.Run();
+
+        if (response == (int)ResponseType.Ok)
         {
-            tree.Insert(random.Next(100));
+            if (int.TryParse(entry.Text, out int value))
+            {
+                result = value;
+            }
         }
-
-        // Create a new DrawingArea to display the tree
-        DrawingArea drawingArea = new DrawingArea();
-
-        // Connect the Draw event to the OnDraw method
-        drawingArea.Drawn += OnDraw;
-
-        // Add the DrawingArea to the window
-        Add(drawingArea);
-
-        // Set the size of the window
-        SetDefaultSize(1400, 600);
-        ShowAll();
     }
+
+    return result;
+}
+
+private void AddNodeButton_Clicked(object sender, EventArgs e)
+{
+    int? value = ShowInputDialog();
+    
+    if (value.HasValue)
+    {
+        tree.Insert(value.Value);
+        QueueDraw(); // Redraw the tree
+    }
+}
+
+private void DeleteNodeButton_Clicked(object sender, EventArgs e)
+{
+    // Add your logic to delete a node here
+}
+
+private void InsertRandomButton_Clicked(object sender, EventArgs e)
+{
+    Random random = new Random();
+    tree.Insert(random.Next(1000));
+
+    // Redraw the tree after inserting the random value
+    QueueDraw();
+}
 
     void OnDraw(object o, DrawnArgs args)
     {
@@ -62,22 +135,27 @@ public class RBTreeVisualizer : Window
 
     double Draw(Context cr, RedBlackTree<int>.Node node, double depth)
     {
+        if (node == null)
+        {
+            return 0;
+        }
+
         double left_x = 0, right_x = 0;
 
         if (node.Left != null)
         {
-            left_x = Draw(cr, node.Left, depth + 1);
-            DrawLine(cr, next_x * nodeDistance, depth * nodeDistance + 0.5, left_x * nodeDistance, (depth + 1) * nodeDistance + 0.5, 17);
+            left_x = Draw(cr, node.Left, depth + 1.5);
+            DrawLine(cr, next_x * nodeDistance, depth * nodeDistance, left_x * nodeDistance, (depth + 1.5) * nodeDistance, 17);
         }
 
         double my_x = next_x++;
 
-        DrawCircle(cr, my_x * nodeDistance, depth * nodeDistance + 0.5, 17, node.Value.ToString(), node.IsRed);
+        DrawCircle(cr, my_x * nodeDistance, depth * nodeDistance, 17, node.Value.ToString(), node.IsRed);
 
         if (node.Right != null)
         {
-            right_x = Draw(cr, node.Right, depth + 1);
-            DrawLine(cr, my_x * nodeDistance, depth * nodeDistance + 0.5, right_x * nodeDistance, (depth + 1) * nodeDistance + 0.5, 17);
+            right_x = Draw(cr, node.Right, depth + 1.5);
+            DrawLine(cr, my_x * nodeDistance, depth * nodeDistance, right_x * nodeDistance, (depth + 1.5) * nodeDistance, 17);
         }
 
         return my_x;
@@ -103,7 +181,7 @@ public class RBTreeVisualizer : Window
         cr.NewPath(); // Reset the current point
     }
 
-    void DrawCircle(Context cr, double x, double y, double radius, string text, bool isRed)
+    void DrawCircle(Context cr, double x, double y, double radius, string text, bool isRed = false)
     {
         if (isRed)
         {
