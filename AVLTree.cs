@@ -104,7 +104,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         return node.Height;
     }
 
-    private int GetBalance(Node? node)
+    public int GetBalance(Node? node)
     {
         if (node == null)
         {
