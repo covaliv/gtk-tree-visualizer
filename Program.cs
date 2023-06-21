@@ -298,31 +298,6 @@ private void AddNodeButton_Clicked(object sender, EventArgs e)
     }
 
 
-    protected override bool OnDrawn(Context cr)
-{
-    int width = Allocation.Width;
-    int height = Allocation.Height;
-
-    // Clear the drawing area
-    cr.SetSourceRGB(1, 1, 1);
-    cr.Paint();
-
-    if (currentTreeType == TreeType.RedBlack)
-    {
-        int rbTreeWidth = rbTree.IsEmpty() ? 0 : GetTreeWidth(rbTree);
-        int xPos = (width - rbTreeWidth) / 2;
-        DrawTree(cr, rbTree, xPos, 20, width);
-    }
-    else
-    {
-        int avlTreeWidth = avlTree.IsEmpty() ? 0 : GetTreeWidth(avlTree);
-        int xPos = (width - avlTreeWidth) / 2;
-        DrawTree(cr, avlTree, xPos, 20, width);
-    }
-
-    return true;
-}
-
     double CalculateTreeWidth(dynamic node)
     {
         if (node == null)
