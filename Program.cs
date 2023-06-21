@@ -79,6 +79,10 @@ public class TreeVisualizer : Window
         deleteRandomButton.Clicked += DeleteRandomButton_Clicked;
         buttonBox.Add(deleteRandomButton);
 
+        Button resetButton = new Button("Reset Tree");
+resetButton.Clicked += ResetButton_Clicked;
+buttonBox.Add(resetButton);
+
         // Create a combo box for the tree type
         ComboBoxText treeTypeComboBox = new ComboBoxText();
         treeTypeComboBox.AppendText("Red-Black Tree");
@@ -91,9 +95,22 @@ public class TreeVisualizer : Window
         Add(vbox);
 
         // Set the size of the window
-        SetDefaultSize(1400, 600);
+        SetDefaultSize(1600, 900);
         ShowAll();
     }
+
+private void ResetButton_Clicked(object sender, EventArgs e)
+{
+    if (currentTreeType == TreeType.RedBlack)
+    {
+        rbTree = new RedBlackTree<int>();
+    }
+    else
+    {
+        avlTree = new AVLTree<int>();
+    }
+    QueueDraw();
+}
 
 
     private void TreeTypeComboBox_Changed(object sender, EventArgs e)
@@ -133,26 +150,32 @@ public class TreeVisualizer : Window
     }
 
     private void InsertRandomButton_Clicked(object sender, EventArgs e)
+{
+    if (int.TryParse(lowerBoundEntry.Text, out int lowerBound) && int.TryParse(upperBoundEntry.Text, out int upperBound))
     {
-        if (int.TryParse(lowerBoundEntry.Text, out int lowerBound) && int.TryParse(upperBoundEntry.Text, out int upperBound))
+        if (lowerBound <= upperBound)
         {
-            if (lowerBound <= upperBound)
+            int randomValue = random.Next(lowerBound, upperBound + 1);
+            if (currentTreeType == TreeType.RedBlack)
             {
-                int randomValue = random.Next(lowerBound, upperBound + 1);
                 rbTree.Insert(randomValue);
-                avlTree.Insert(randomValue);
-                QueueDraw();
             }
             else
             {
-                Console.WriteLine("Invalid range. Lower bound should be less than or equal to the upper bound.");
+                avlTree.Insert(randomValue);
             }
+            QueueDraw();
         }
         else
         {
-            Console.WriteLine("Invalid input. Please enter valid integers for the lower and upper bounds.");
+            Console.WriteLine("Invalid range. Lower bound should be less than or equal to the upper bound.");
         }
     }
+    else
+    {
+        Console.WriteLine("Invalid input. Please enter valid integers for the lower and upper bounds.");
+    }
+}
 
     private void DeleteRandomButton_Clicked(object sender, EventArgs e)
     {
@@ -209,21 +232,27 @@ public class TreeVisualizer : Window
         }
     }
 
-    private void AddNodeButton_Clicked(object sender, EventArgs e)
+private void AddNodeButton_Clicked(object sender, EventArgs e)
+{
+    if (int.TryParse(nodeValueEntry.Text, out int nodeValue))
     {
-        if (int.TryParse(nodeValueEntry.Text, out int nodeValue))
+        if (currentTreeType == TreeType.RedBlack)
         {
             rbTree.Insert(nodeValue);
-            avlTree.Insert(nodeValue);
-            QueueDraw();
-            nodeValueEntry.Text = ""; // Clear the text box after successful insertion
         }
         else
         {
-            // Show an error message or handle the invalid input in your preferred way
-            Console.WriteLine("Invalid input. Please enter a valid integer.");
+            avlTree.Insert(nodeValue);
         }
+        QueueDraw();
+        nodeValueEntry.Text = ""; // Clear the text box after successful insertion
     }
+    else
+    {
+        // Show an error message or handle the invalid input in your preferred way
+        Console.WriteLine("Invalid input. Please enter a valid integer.");
+    }
+}
 
     private void DeleteNodeButton_Clicked(object sender, EventArgs e)
     {
@@ -267,6 +296,32 @@ public class TreeVisualizer : Window
             Draw(cr, avlTree.Root, 3);
         }
     }
+
+
+    protected override bool OnDrawn(Context cr)
+{
+    int width = Allocation.Width;
+    int height = Allocation.Height;
+
+    // Clear the drawing area
+    cr.SetSourceRGB(1, 1, 1);
+    cr.Paint();
+
+    if (currentTreeType == TreeType.RedBlack)
+    {
+        int rbTreeWidth = rbTree.IsEmpty() ? 0 : GetTreeWidth(rbTree);
+        int xPos = (width - rbTreeWidth) / 2;
+        DrawTree(cr, rbTree, xPos, 20, width);
+    }
+    else
+    {
+        int avlTreeWidth = avlTree.IsEmpty() ? 0 : GetTreeWidth(avlTree);
+        int xPos = (width - avlTreeWidth) / 2;
+        DrawTree(cr, avlTree, xPos, 20, width);
+    }
+
+    return true;
+}
 
     double CalculateTreeWidth(dynamic node)
     {
