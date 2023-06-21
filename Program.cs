@@ -80,8 +80,8 @@ public class TreeVisualizer : Window
         buttonBox.Add(deleteRandomButton);
 
         Button resetButton = new Button("Reset Tree");
-resetButton.Clicked += ResetButton_Clicked;
-buttonBox.Add(resetButton);
+        resetButton.Clicked += ResetButton_Clicked;
+        buttonBox.Add(resetButton);
 
         // Create a combo box for the tree type
         ComboBoxText treeTypeComboBox = new ComboBoxText();
@@ -94,23 +94,23 @@ buttonBox.Add(resetButton);
         // Add the VBox to the window
         Add(vbox);
 
-        // Set the size of the window
-        SetDefaultSize(1600, 900);
+        // Set the size of the window as the maximum size of the screen
+        SetDefaultSize(1366, 768);
         ShowAll();
     }
 
-private void ResetButton_Clicked(object sender, EventArgs e)
-{
-    if (currentTreeType == TreeType.RedBlack)
+    private void ResetButton_Clicked(object sender, EventArgs e)
     {
-        rbTree = new RedBlackTree<int>();
+        if (currentTreeType == TreeType.RedBlack)
+        {
+            rbTree = new RedBlackTree<int>();
+        }
+        else
+        {
+            avlTree = new AVLTree<int>();
+        }
+        QueueDraw();
     }
-    else
-    {
-        avlTree = new AVLTree<int>();
-    }
-    QueueDraw();
-}
 
 
     private void TreeTypeComboBox_Changed(object sender, EventArgs e)
@@ -150,32 +150,32 @@ private void ResetButton_Clicked(object sender, EventArgs e)
     }
 
     private void InsertRandomButton_Clicked(object sender, EventArgs e)
-{
-    if (int.TryParse(lowerBoundEntry.Text, out int lowerBound) && int.TryParse(upperBoundEntry.Text, out int upperBound))
     {
-        if (lowerBound <= upperBound)
+        if (int.TryParse(lowerBoundEntry.Text, out int lowerBound) && int.TryParse(upperBoundEntry.Text, out int upperBound))
         {
-            int randomValue = random.Next(lowerBound, upperBound + 1);
-            if (currentTreeType == TreeType.RedBlack)
+            if (lowerBound <= upperBound)
             {
-                rbTree.Insert(randomValue);
+                int randomValue = random.Next(lowerBound, upperBound + 1);
+                if (currentTreeType == TreeType.RedBlack)
+                {
+                    rbTree.Insert(randomValue);
+                }
+                else
+                {
+                    avlTree.Insert(randomValue);
+                }
+                QueueDraw();
             }
             else
             {
-                avlTree.Insert(randomValue);
+                Console.WriteLine("Invalid range. Lower bound should be less than or equal to the upper bound.");
             }
-            QueueDraw();
         }
         else
         {
-            Console.WriteLine("Invalid range. Lower bound should be less than or equal to the upper bound.");
+            Console.WriteLine("Invalid input. Please enter valid integers for the lower and upper bounds.");
         }
     }
-    else
-    {
-        Console.WriteLine("Invalid input. Please enter valid integers for the lower and upper bounds.");
-    }
-}
 
     private void DeleteRandomButton_Clicked(object sender, EventArgs e)
     {
@@ -232,34 +232,39 @@ private void ResetButton_Clicked(object sender, EventArgs e)
         }
     }
 
-private void AddNodeButton_Clicked(object sender, EventArgs e)
-{
-    if (int.TryParse(nodeValueEntry.Text, out int nodeValue))
+    private void AddNodeButton_Clicked(object sender, EventArgs e)
     {
-        if (currentTreeType == TreeType.RedBlack)
+        if (int.TryParse(nodeValueEntry.Text, out int nodeValue))
         {
-            rbTree.Insert(nodeValue);
+            if (currentTreeType == TreeType.RedBlack)
+            {
+                rbTree.Insert(nodeValue);
+            }
+            else
+            {
+                avlTree.Insert(nodeValue);
+            }
+            QueueDraw();
+            nodeValueEntry.Text = ""; // Clear the text box after successful insertion
         }
         else
         {
-            avlTree.Insert(nodeValue);
+            // Show an error message or handle the invalid input in your preferred way
+            Console.WriteLine("Invalid input. Please enter a valid integer.");
         }
-        QueueDraw();
-        nodeValueEntry.Text = ""; // Clear the text box after successful insertion
     }
-    else
-    {
-        // Show an error message or handle the invalid input in your preferred way
-        Console.WriteLine("Invalid input. Please enter a valid integer.");
-    }
-}
-
     private void DeleteNodeButton_Clicked(object sender, EventArgs e)
     {
         if (int.TryParse(nodeValueEntry.Text, out int nodeValue))
         {
-            rbTree.Delete(nodeValue);
-            avlTree.Delete(nodeValue);
+            if (currentTreeType == TreeType.RedBlack)
+            {
+                rbTree.Delete(nodeValue);
+            }
+            else
+            {
+                avlTree.Delete(nodeValue);
+            }
             QueueDraw();
             nodeValueEntry.Text = ""; // Clear the text box after successful deletion
         }
@@ -269,34 +274,41 @@ private void AddNodeButton_Clicked(object sender, EventArgs e)
             Console.WriteLine("Invalid input. Please enter a valid integer.");
         }
     }
-void OnDraw(object o, DrawnArgs args)
-{
-    var cr = args.Cr;
 
-    // Set background color to white
-    cr.SetSourceRGB(1, 1, 1);
-    cr.Paint();
-
-    // Set line width
-    cr.LineWidth = 2.0;
-
-    // Calculate the width of the tree
-    double treeWidth = currentTreeType == TreeType.RedBlack ? CalculateTreeWidth(rbTree.Root) : CalculateTreeWidth(avlTree.Root);
-
-    // Start drawing from the middle and add an offset
-    double xOffset = 2; // Set the desired offset value
-    next_x = treeWidth / 2 + xOffset;
-
-    // Start drawing from root
-    if (currentTreeType == TreeType.RedBlack)
+    void OnDraw(object o, DrawnArgs args)
     {
-        Draw(cr, rbTree.Root, 3);
+        var cr = args.Cr;
+
+        // Set background color to white
+        cr.SetSourceRGB(1, 1, 1);
+        cr.Paint();
+
+        // Set line width
+        cr.LineWidth = 2.0;
+
+        // Calculate the total width of the tree
+        double treeWidth = currentTreeType == TreeType.RedBlack ? CalculateTotalTreeWidth(rbTree.Root, 3) : CalculateTotalTreeWidth(avlTree.Root, 3);
+        System.Console.WriteLine("Tree width: " + treeWidth);
+
+        // Get the window width
+        double windowWidth = this.Allocation.Width;
+
+        // Calculate the starting xOffset based on the window width
+        double xOffset = (windowWidth - treeWidth) / 2 - nodeDistance / 2;
+
+        // Start drawing from the middle and add an offset
+        next_x = xOffset / nodeDistance;
+
+        // Start drawing from root
+        if (currentTreeType == TreeType.RedBlack)
+        {
+            Draw(cr, rbTree.Root, 3);
+        }
+        else
+        {
+            Draw(cr, avlTree.Root, 3);
+        }
     }
-    else
-    {
-        Draw(cr, avlTree.Root, 3);
-    }
-}
 
 
     double CalculateTreeWidth(dynamic node)
@@ -309,40 +321,54 @@ void OnDraw(object o, DrawnArgs args)
         return 1 + Math.Max(CalculateTreeWidth(node.Left), CalculateTreeWidth(node.Right));
     }
 
-double Draw(Context cr, dynamic node, double depth)
-{
-    if (node == null)
+    double CalculateTotalTreeWidth(dynamic node, double depth)
     {
-        return 0;
+        if (node == null)
+        {
+            return 0;
+        }
+
+        double width = 1.0; // Width of the current node
+        double leftWidth = CalculateTotalTreeWidth(node.Left, depth + 1.5);
+        double rightWidth = CalculateTotalTreeWidth(node.Right, depth + 1.5);
+
+        return width * nodeDistance + leftWidth + rightWidth;
     }
 
-    double left_x = 0, right_x = 0;
-
-    if (node.Left != null)
+    double Draw(Context cr, dynamic node, double depth)
     {
-        left_x = Draw(cr, node.Left, depth + 1.5);
-        DrawLine(cr, next_x * nodeDistance, depth * nodeDistance, left_x * nodeDistance, (depth + 1.5) * nodeDistance, 17);
+        if (node == null)
+        {
+            return 0;
+        }
+
+        double left_x = 0, right_x = 0;
+
+        if (node.Left != null)
+        {
+            left_x = Draw(cr, node.Left, depth + 1.5);
+            DrawLine(cr, next_x * nodeDistance, depth * nodeDistance, left_x * nodeDistance, (depth + 1.5) * nodeDistance, 17);
+        }
+
+        double my_x = next_x++;
+
+        bool isRed = node.GetType() == typeof(RedBlackTree<int>.Node) ? node.IsRed : false;
+
+        if (node.Right != null)
+        {
+            right_x = Draw(cr, node.Right, depth + 1.5);
+            DrawLine(cr, my_x * nodeDistance, depth * nodeDistance, right_x * nodeDistance, (depth + 1.5) * nodeDistance, 17);
+        }
+
+        int balanceFactor = 0;
+        if (currentTreeType == TreeType.AVL)
+        {
+            balanceFactor = avlTree.GetBalance(node);
+        }
+        DrawCircle(cr, my_x * nodeDistance, depth * nodeDistance, 17, node.Value.ToString(), isRed, balanceFactor);
+
+        return my_x;
     }
-
-    double my_x = next_x++;
-
-    bool isRed = node.GetType() == typeof(RedBlackTree<int>.Node) ? node.IsRed : false;
-    
-    if (node.Right != null)
-    {
-        right_x = Draw(cr, node.Right, depth + 1.5);
-        DrawLine(cr, my_x * nodeDistance, depth * nodeDistance, right_x * nodeDistance, (depth + 1.5) * nodeDistance, 17);
-    }
-
-    int balanceFactor = 0;
-    if (currentTreeType == TreeType.AVL)
-    {
-        balanceFactor = avlTree.GetBalance(node);
-    }
-    DrawCircle(cr, my_x * nodeDistance, depth * nodeDistance, 17, node.Value.ToString(), isRed, balanceFactor);
-
-    return my_x;
-}
     void DrawLine(Context cr, double x1, double y1, double x2, double y2, double radius)
     {
         // Calculate the angle of the line
@@ -362,16 +388,18 @@ double Draw(Context cr, dynamic node, double depth)
         cr.Stroke();
         cr.NewPath(); // Reset the current point
     }
-void DrawCircle(Context cr, double x, double y, double radius, string text, bool isRed = false, int balanceFactor = 0)
-{
-    if (isRed)
+    void DrawCircle(Context cr, double x, double y, double radius, string text, bool isRed = false, int balanceFactor = 0)
     {
-        cr.SetSourceRGB(1, 0, 0); // Red color for Red-Black Tree red nodes
-    }
-    else
-    {
-        cr.SetSourceRGB(0, 0, 0); // Black color for AVL Tree nodes and Red-Black Tree black nodes
-    }
+        switch (currentTreeType)
+        {
+            case TreeType.RedBlack:
+                cr.SetSourceRGB(isRed ? 1 : 0, 0, 0); // Red color for Red-Black Tree red nodes, black for the black nodes
+                break;
+            case TreeType.AVL:
+            default:
+                cr.SetSourceRGB(0, 0, 0); // Black color for AVL Tree nodes
+                break;
+        }
 
         cr.Arc(x, y, radius, 0, 2 * Math.PI);
         cr.Fill(); // Fill the circle with the current color
@@ -399,30 +427,30 @@ void DrawCircle(Context cr, double x, double y, double radius, string text, bool
         cr.MoveTo(x - te.Width / 2, y + te.Height / 2);
         cr.ShowText(text);
 
- if (currentTreeType == TreeType.AVL)
-    {
-        string balanceText = $"{balanceFactor}";
-        TextExtents bfTe = cr.TextExtents(balanceText);
-        double offsetX = 3; // Adjust this value to move the text more or less to the right
-        double offsetY = -10; // Adjust this value to move the text more or less down
-
-        // Draw the black outline
-        cr.SetSourceRGB(0, 0, 0); // Set color to black
-        for (int i = -1; i <= 1; i++)
+        if (currentTreeType == TreeType.AVL)
         {
-            for (int j = -1; j <= 1; j++)
-            {
-                cr.MoveTo(x + radius + offsetX + i - bfTe.Width / 2, y + radius + offsetY + bfTe.Height + j);
-                cr.ShowText(balanceText);
-            }
-        }
+            string balanceText = $"{balanceFactor}";
+            TextExtents bfTe = cr.TextExtents(balanceText);
+            double offsetX = 3; // Adjust this value to move the text more or less to the right
+            double offsetY = -10; // Adjust this value to move the text more or less down
 
-        // Draw the green text
-        cr.SetSourceRGB(0, 1, 0); // Set color to green
-        cr.MoveTo(x + radius + offsetX - bfTe.Width / 2, y + radius + offsetY + bfTe.Height);
-        cr.ShowText(balanceText);
+            // Draw the black outline
+            cr.SetSourceRGB(0, 0, 0); // Set color to black
+            for (int i = -1; i <= 1; i++)
+            {
+                for (int j = -1; j <= 1; j++)
+                {
+                    cr.MoveTo(x + radius + offsetX + i - bfTe.Width / 2, y + radius + offsetY + bfTe.Height + j);
+                    cr.ShowText(balanceText);
+                }
+            }
+
+            // Draw the green text
+            cr.SetSourceRGB(0, 1, 0); // Set color to green
+            cr.MoveTo(x + radius + offsetX - bfTe.Width / 2, y + radius + offsetY + bfTe.Height);
+            cr.ShowText(balanceText);
+        }
     }
-}
     public static void Main()
     {
         Application.Init();
