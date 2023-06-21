@@ -14,7 +14,7 @@ public class TreeVisualizer : Window
     private AVLTree<int> avlTree;
     private TreeType currentTreeType;
     private double next_x = 0;
-    private double nodeDistance = 25; // Distance between nodes
+    private double nodeDistance = 23; // Distance between nodes
     private Random random = new Random();
     private Entry nodeValueEntry;
     private Entry lowerBoundEntry;
@@ -269,33 +269,34 @@ private void AddNodeButton_Clicked(object sender, EventArgs e)
             Console.WriteLine("Invalid input. Please enter a valid integer.");
         }
     }
-    void OnDraw(object o, DrawnArgs args)
+void OnDraw(object o, DrawnArgs args)
+{
+    var cr = args.Cr;
+
+    // Set background color to white
+    cr.SetSourceRGB(1, 1, 1);
+    cr.Paint();
+
+    // Set line width
+    cr.LineWidth = 2.0;
+
+    // Calculate the width of the tree
+    double treeWidth = currentTreeType == TreeType.RedBlack ? CalculateTreeWidth(rbTree.Root) : CalculateTreeWidth(avlTree.Root);
+
+    // Start drawing from the middle and add an offset
+    double xOffset = 2; // Set the desired offset value
+    next_x = treeWidth / 2 + xOffset;
+
+    // Start drawing from root
+    if (currentTreeType == TreeType.RedBlack)
     {
-        var cr = args.Cr;
-
-        // Set background color to white
-        cr.SetSourceRGB(1, 1, 1);
-        cr.Paint();
-
-        // Set line width
-        cr.LineWidth = 2.0;
-
-        // Calculate the width of the tree
-        double treeWidth = CalculateTreeWidth(rbTree.Root);
-
-        // Start drawing from the middle
-        next_x = treeWidth / 2;
-
-        // Start drawing from root
-        if (currentTreeType == TreeType.RedBlack)
-        {
-            Draw(cr, rbTree.Root, 3);
-        }
-        else
-        {
-            Draw(cr, avlTree.Root, 3);
-        }
+        Draw(cr, rbTree.Root, 3);
     }
+    else
+    {
+        Draw(cr, avlTree.Root, 3);
+    }
+}
 
 
     double CalculateTreeWidth(dynamic node)
@@ -333,7 +334,12 @@ double Draw(Context cr, dynamic node, double depth)
         DrawLine(cr, my_x * nodeDistance, depth * nodeDistance, right_x * nodeDistance, (depth + 1.5) * nodeDistance, 17);
     }
 
-    DrawCircle(cr, my_x * nodeDistance, depth * nodeDistance, 17, node.Value.ToString(), isRed);
+    int balanceFactor = 0;
+    if (currentTreeType == TreeType.AVL)
+    {
+        balanceFactor = avlTree.GetBalance(node);
+    }
+    DrawCircle(cr, my_x * nodeDistance, depth * nodeDistance, 17, node.Value.ToString(), isRed, balanceFactor);
 
     return my_x;
 }
@@ -356,7 +362,7 @@ double Draw(Context cr, dynamic node, double depth)
         cr.Stroke();
         cr.NewPath(); // Reset the current point
     }
-void DrawCircle(Context cr, double x, double y, double radius, string text, bool isRed = false)
+void DrawCircle(Context cr, double x, double y, double radius, string text, bool isRed = false, int balanceFactor = 0)
 {
     if (isRed)
     {
@@ -392,8 +398,31 @@ void DrawCircle(Context cr, double x, double y, double radius, string text, bool
         cr.SetSourceRGB(1, 1, 1); // Set color to white
         cr.MoveTo(x - te.Width / 2, y + te.Height / 2);
         cr.ShowText(text);
-    }
 
+ if (currentTreeType == TreeType.AVL)
+    {
+        string balanceText = $"{balanceFactor}";
+        TextExtents bfTe = cr.TextExtents(balanceText);
+        double offsetX = 3; // Adjust this value to move the text more or less to the right
+        double offsetY = -10; // Adjust this value to move the text more or less down
+
+        // Draw the black outline
+        cr.SetSourceRGB(0, 0, 0); // Set color to black
+        for (int i = -1; i <= 1; i++)
+        {
+            for (int j = -1; j <= 1; j++)
+            {
+                cr.MoveTo(x + radius + offsetX + i - bfTe.Width / 2, y + radius + offsetY + bfTe.Height + j);
+                cr.ShowText(balanceText);
+            }
+        }
+
+        // Draw the green text
+        cr.SetSourceRGB(0, 1, 0); // Set color to green
+        cr.MoveTo(x + radius + offsetX - bfTe.Width / 2, y + radius + offsetY + bfTe.Height);
+        cr.ShowText(balanceText);
+    }
+}
     public static void Main()
     {
         Application.Init();
