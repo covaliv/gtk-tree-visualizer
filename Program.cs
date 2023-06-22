@@ -19,6 +19,7 @@ public class TreeVisualizer : Window
     private Entry nodeValueEntry;
     private Entry lowerBoundEntry;
     private Entry upperBoundEntry;
+    private Label traversalResultLabel;
 
 
     public TreeVisualizer() : base("Tree Visualizer")
@@ -38,6 +39,15 @@ public class TreeVisualizer : Window
 
         // Add the DrawingArea to the VBox
         vbox.PackStart(drawingArea, true, true, 0);
+
+        traversalResultLabel = new Label { Text = "" };
+
+        Pango.FontDescription fontDescription = Pango.FontDescription.FromString("Arial 12");
+        traversalResultLabel.ModifyFont(fontDescription);
+        ScrolledWindow scrolledWindow = new ScrolledWindow();
+        scrolledWindow.SetSizeRequest(400, 30); // Set the desired width and height for the ScrolledWindow
+        scrolledWindow.Add(traversalResultLabel);
+        vbox.PackStart(scrolledWindow, false, false, 0);
 
         // Create a button box for the buttons
         Box buttonBox = new Box(Orientation.Horizontal, 10);
@@ -90,6 +100,22 @@ public class TreeVisualizer : Window
         treeTypeComboBox.Active = 0; // Set Red-Black Tree as the default
         treeTypeComboBox.Changed += TreeTypeComboBox_Changed;
         buttonBox.Add(treeTypeComboBox);
+
+        ComboBoxText traversalComboBox = new ComboBoxText();
+        traversalComboBox.AppendText("Inorder");
+        traversalComboBox.AppendText("Preorder");
+        traversalComboBox.AppendText("Postorder");
+        traversalComboBox.Active = 0; // Set Inorder as the default selection
+        buttonBox.PackStart(traversalComboBox, false, false, 0);
+
+        // Create the Show Tree Traversal button
+        Button showTraversalButton = new Button("Show Tree Traversal");
+        showTraversalButton.Clicked += (sender, e) => ShowTraversalButton_Clicked(sender, e, traversalComboBox);
+        buttonBox.Add(showTraversalButton);
+
+        // Add this line after adding the "Show Tree Traversal" button to buttonBox
+
+
 
         // Add the VBox to the window
         Add(vbox);
@@ -174,6 +200,51 @@ public class TreeVisualizer : Window
         else
         {
             Console.WriteLine("Invalid input. Please enter valid integers for the lower and upper bounds.");
+        }
+    }
+
+    private void ShowTraversalButton_Clicked(object sender, EventArgs e, ComboBoxText traversalComboBox)
+    {
+        string selectedTraversal = traversalComboBox.ActiveText;
+        List<int> traversalResult = new List<int>();
+
+        if (currentTreeType == TreeType.RedBlack)
+        {
+            PerformTraversal(rbTree.Root, traversalResult, selectedTraversal);
+        }
+        else
+        {
+            PerformTraversal(avlTree.Root, traversalResult, selectedTraversal);
+        }
+
+        // Set the traversal result label text
+        traversalResultLabel.Text = $"{selectedTraversal} traversal: " + string.Join("  ", traversalResult);
+    }
+
+    private void PerformTraversal(dynamic node, List<int> traversalResult, string traversalType)
+    {
+        if (node == null)
+        {
+            return;
+        }
+
+        switch (traversalType)
+        {
+            case "Inorder":
+                PerformTraversal(node.Left, traversalResult, traversalType);
+                traversalResult.Add(node.Value);
+                PerformTraversal(node.Right, traversalResult, traversalType);
+                break;
+            case "Preorder":
+                traversalResult.Add(node.Value);
+                PerformTraversal(node.Left, traversalResult, traversalType);
+                PerformTraversal(node.Right, traversalResult, traversalType);
+                break;
+            case "Postorder":
+                PerformTraversal(node.Left, traversalResult, traversalType);
+                PerformTraversal(node.Right, traversalResult, traversalType);
+                traversalResult.Add(node.Value);
+                break;
         }
     }
 
