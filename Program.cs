@@ -16,7 +16,6 @@ public class TreeVisualizer : Window
     private Entry nodeValueEntry;
     private Entry lowerBoundEntry;
     private Entry upperBoundEntry;
-    private Label traversalResultLabel;
 
 
     public TreeVisualizer() : base("Tree Visualizer")
@@ -38,15 +37,6 @@ public class TreeVisualizer : Window
         // Add the DrawingArea to the VBox
         vbox.PackStart(drawingArea, true, true, 0);
 
-        traversalResultLabel = new Label { Text = "" };
-
-        Pango.FontDescription fontDescription = Pango.FontDescription.FromString("Arial 12");
-        traversalResultLabel.ModifyFont(fontDescription);
-        ScrolledWindow scrolledWindow = new ScrolledWindow();
-        scrolledWindow.SetSizeRequest(100, 5); // Set the desired width and height for the ScrolledWindow
-        scrolledWindow.Add(traversalResultLabel);
-        vbox.PackStart(scrolledWindow, false, false, 0);
-
         // Create a button box for the buttons
         Box buttonBox1 = new Box(Orientation.Horizontal, 10);
         buttonBox1.Margin = 5;
@@ -54,14 +44,14 @@ public class TreeVisualizer : Window
 
         // Create the Add Node button
         Button addNodeButton = new Button("Add Node");
-        addNodeButton.Clicked += AddNodeButton_Clicked;
+        addNodeButton.Clicked += AddNodeButton_Clicked!;
 
         // Create a new Entry for the node value
         nodeValueEntry = new Entry();
         nodeValueEntry.PlaceholderText = "Enter node value";
         // Create the Delete Node button
         Button deleteNodeButton = new Button("Delete Node");
-        deleteNodeButton.Clicked += DeleteNodeButton_Clicked;
+        deleteNodeButton.Clicked += DeleteNodeButton_Clicked!;
 
         // Create a new Entry for the lower bound
         lowerBoundEntry = new Entry();
@@ -74,11 +64,11 @@ public class TreeVisualizer : Window
 
         // Create the Insert Random Value button
         Button insertRandomButton = new Button("Insert Random Value");
-        insertRandomButton.Clicked += InsertRandomButton_Clicked;
+        insertRandomButton.Clicked += InsertRandomButton_Clicked!;
 
         // Create the Delete Random Value button
         Button deleteRandomButton = new Button("Delete Random Value");
-        deleteRandomButton.Clicked += DeleteRandomButton_Clicked;
+        deleteRandomButton.Clicked += DeleteRandomButton_Clicked!;
 
         // Add the buttons and entries to the button box
         buttonBox1.Add(addNodeButton);
@@ -94,7 +84,7 @@ public class TreeVisualizer : Window
         vbox.PackStart(buttonBox2, false, false, 0);
 
         Button resetButton = new Button("Reset Tree");
-        resetButton.Clicked += ResetButton_Clicked;
+        resetButton.Clicked += ResetButton_Clicked!;
 
         // Create a combo box for the tree type
         ComboBoxText treeTypeComboBox = new ComboBoxText();
@@ -102,7 +92,7 @@ public class TreeVisualizer : Window
         treeTypeComboBox.AppendText("AVL Tree");
         treeTypeComboBox.AppendText("Binary Search Tree");
         treeTypeComboBox.Active = 0; // Set Red-Black Tree as the default
-        treeTypeComboBox.Changed += TreeTypeComboBox_Changed;
+        treeTypeComboBox.Changed += TreeTypeComboBox_Changed!;
 
         ComboBoxText traversalComboBox = new ComboBoxText();
         traversalComboBox.AppendText("Inorder");
@@ -110,17 +100,16 @@ public class TreeVisualizer : Window
         traversalComboBox.AppendText("Postorder");
         traversalComboBox.Active = 0; // Set Inorder as the default selection
         buttonBox2.Add(resetButton);
-        buttonBox2.Add(resetButton);
         buttonBox2.Add(treeTypeComboBox);
         buttonBox2.PackStart(traversalComboBox, false, false, 0);
 
         // Create the Show Tree Traversal button
         Button showTraversalButton = new Button("Update Tree Traversal");
-        showTraversalButton.Clicked += (sender, e) => ShowTraversalButton_Clicked(sender, e, traversalComboBox);
+        showTraversalButton.Clicked += (sender, e) => ShowTraversalButton_Clicked(sender!, e, traversalComboBox);
         buttonBox2.Add(showTraversalButton);
 
         Button showUpdatesButton = new Button("Show Updates");
-        showUpdatesButton.Clicked += ShowUpdatesButton_Clicked;
+        showUpdatesButton.Clicked += ShowUpdatesButton_Clicked!;
         buttonBox2.Add(showUpdatesButton);
 
         // Add the VBox to the window
@@ -169,12 +158,14 @@ public class TreeVisualizer : Window
             updatesLog = bsTree.updatesLog;
         }
 
-        using (MessageDialog dialog = new MessageDialog(this, DialogFlags.Modal, MessageType.Info, ButtonsType.Ok, updatesLog.ToString()))
+        if (updatesLog.Length == 0)
         {
-            dialog.Title = "Recent Updates";
-            dialog.Run();
-            dialog.Destroy();
+            return;
         }
+
+        // create a dialog to display the updates log
+        CreateMessageDialog(updatesLog.ToString());
+
     }
 
     private int? ShowInputDialog()
@@ -229,12 +220,12 @@ public class TreeVisualizer : Window
             }
             else
             {
-                Console.WriteLine("Invalid range. Lower bound should be less than or equal to the upper bound.");
+                CreateMessageDialog("Invalid input. The lower bound must be less than or equal to the upper bound.");
             }
         }
         else
         {
-            Console.WriteLine("Invalid input. Please enter valid integers for the lower and upper bounds.");
+            CreateMessageDialog("Invalid input. The lower bound and upper bound must be integers.");
         }
     }
 
@@ -245,19 +236,24 @@ public class TreeVisualizer : Window
 
         if (currentTreeType == TreeType.RedBlack)
         {
-            PerformTraversal(rbTree.Root, traversalResult, selectedTraversal);
+            PerformTraversal(rbTree.Root!, traversalResult, selectedTraversal);
         }
         else if (currentTreeType == TreeType.AVL)
         {
-            PerformTraversal(avlTree.Root, traversalResult, selectedTraversal);
+            PerformTraversal(avlTree.Root!, traversalResult, selectedTraversal);
         }
         else
         {
-            PerformTraversal(bsTree.Root, traversalResult, selectedTraversal);
+            PerformTraversal(bsTree.Root!, traversalResult, selectedTraversal);
         }
 
         // Set the traversal result label text
-        traversalResultLabel.Text = string.Join("  ", traversalResult);
+        if (traversalResult.Count == 0)
+        {
+            CreateMessageDialog("The tree is empty.");
+            return;
+        }
+        CreateMessageDialog(string.Join("  ", traversalResult));
     }
 
     private void PerformTraversal(dynamic node, List<int> traversalResult, string traversalType)
@@ -299,7 +295,7 @@ public class TreeVisualizer : Window
             }
             else
             {
-                Console.WriteLine("The tree is empty.");
+                CreateMessageDialog("The tree is empty.");
             }
         }
         else if (currentTreeType == TreeType.AVL)
@@ -312,7 +308,7 @@ public class TreeVisualizer : Window
             }
             else
             {
-                Console.WriteLine("The tree is empty.");
+                CreateMessageDialog("The tree is empty.");
             }
         }
         else
@@ -325,8 +321,22 @@ public class TreeVisualizer : Window
             }
             else
             {
-                Console.WriteLine("The tree is empty.");
+                CreateMessageDialog("The tree is empty.");
             }
+        }
+    }
+
+
+    private void CreateMessageDialog(string message)
+    {
+        using (Dialog dialog = new Dialog(currentTreeType.ToString(), this, DialogFlags.Modal))
+        {
+            dialog.AddButton("OK", ResponseType.Ok);
+
+            Label label = new Label(message);
+            dialog.ContentArea.PackStart(label, true, true, 0);
+            dialog.ShowAll();
+            dialog.Run();
         }
     }
 
@@ -393,7 +403,7 @@ public class TreeVisualizer : Window
         else
         {
             // Show an error message or handle the invalid input in your preferred way
-            Console.WriteLine("Invalid input. Please enter a valid integer.");
+            CreateMessageDialog("Invalid input. Please enter a valid integer.");
         }
     }
     private void DeleteNodeButton_Clicked(object sender, EventArgs e)
@@ -418,7 +428,7 @@ public class TreeVisualizer : Window
         else
         {
             // Show an error message or handle the invalid input in your preferred way
-            Console.WriteLine("Invalid input. Please enter a valid integer.");
+            CreateMessageDialog("Invalid input. Please enter a valid integer.");
         }
     }
 
@@ -433,21 +443,19 @@ public class TreeVisualizer : Window
         // Set line width
         cr.LineWidth = 2.0;
 
-        // Calculate the total width of the tree
-        // double treeWidth = currentTreeType == TreeType.RedBlack ? CalculateTotalTreeWidth(rbTree.Root, 3) : CalculateTotalTreeWidth(avlTree.Root, 3);
-        // System.Console.WriteLine("Tree width: " + treeWidth);
+
         double treeWidth;
         if (currentTreeType == TreeType.RedBlack)
         {
-            treeWidth = CalculateTotalTreeWidth(rbTree.Root, 3);
+            treeWidth = CalculateTotalTreeWidth(rbTree.Root!, 3);
         }
         else if (currentTreeType == TreeType.AVL)
         {
-            treeWidth = CalculateTotalTreeWidth(avlTree.Root, 3);
+            treeWidth = CalculateTotalTreeWidth(avlTree.Root!, 3);
         }
         else
         {
-            treeWidth = CalculateTotalTreeWidth(bsTree.Root, 3);
+            treeWidth = CalculateTotalTreeWidth(bsTree.Root!, 3);
         }
 
         // Get the window width
@@ -462,15 +470,15 @@ public class TreeVisualizer : Window
         // Start drawing from root
         if (currentTreeType == TreeType.RedBlack)
         {
-            Draw(cr, rbTree.Root, 3);
+            Draw(cr, rbTree.Root!, 3);
         }
         else if (currentTreeType == TreeType.AVL)
         {
-            Draw(cr, avlTree.Root, 3);
+            Draw(cr, avlTree.Root!, 3);
         }
         else
         {
-            Draw(cr, bsTree.Root, 3);
+            Draw(cr, bsTree.Root!, 3);
         }
     }
 
