@@ -327,18 +327,32 @@ public class TreeVisualizer : Window
     }
 
 
-    private void CreateMessageDialog(string message)
+private void CreateMessageDialog(string message)
+{
+    using (Dialog dialog = new Dialog(currentTreeType.ToString(), this, DialogFlags.Modal))
     {
-        using (Dialog dialog = new Dialog(currentTreeType.ToString(), this, DialogFlags.Modal))
-        {
-            dialog.AddButton("OK", ResponseType.Ok);
+        dialog.AddButton("OK", ResponseType.Ok);
 
-            Label label = new Label(message);
-            dialog.ContentArea.PackStart(label, true, true, 0);
-            dialog.ShowAll();
-            dialog.Run();
-        }
+        // Create a ScrolledWindow
+        ScrolledWindow scrolledWindow = new ScrolledWindow();
+        scrolledWindow.SetPolicy(PolicyType.Automatic, PolicyType.Automatic);
+        scrolledWindow.ShadowType = ShadowType.EtchedIn;
+
+        // Create a Label and add it to the ScrolledWindow
+        Label label = new Label(message);
+        label.Wrap = true; // Enable text wrapping for better readability
+        scrolledWindow.AddWithViewport(label);
+
+        // Add the ScrolledWindow to the Dialog's ContentArea
+        dialog.ContentArea.PackStart(scrolledWindow, true, true, 0);
+
+        // Set the preferred size of the ScrolledWindow
+        scrolledWindow.SetSizeRequest(400, 200); // Adjust width and height as needed
+
+        dialog.ShowAll();
+        dialog.Run();
     }
+}
 
     private int GetRandomValueFromTree(dynamic node)
     {
