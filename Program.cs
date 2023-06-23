@@ -8,7 +8,7 @@ enum TreeType { RedBlack, AVL, BinarySearchTree }
 
     private RedBlackTree<int> rbTree;
     private AVLTree<int> avlTree;
-    private BinarySearchTree<int> bstTree;
+    private BinarySearchTree<int> bsTree;
     private TreeType currentTreeType;
     private double next_x = 0;
     private double nodeDistance = 24; // Distance between nodes
@@ -23,7 +23,7 @@ enum TreeType { RedBlack, AVL, BinarySearchTree }
     {
         rbTree = new RedBlackTree<int>();
         avlTree = new AVLTree<int>();
-        bstTree = new BinarySearchTree<int>();
+        bsTree = new BinarySearchTree<int>();
         currentTreeType = TreeType.RedBlack;
 
         // Create a VBox layout
@@ -187,7 +187,7 @@ vbox.PackStart(buttonBox, false, false, 0);
                 }
                 else
                 {
-                    bstTree.Insert(randomValue);
+                    bsTree.Insert(randomValue);
                 }
                 QueueDraw();
             }
@@ -217,7 +217,7 @@ vbox.PackStart(buttonBox, false, false, 0);
         }
         else
         {
-            PerformTraversal(bstTree.Root, traversalResult, selectedTraversal);
+            PerformTraversal(bsTree.Root, traversalResult, selectedTraversal);
         }
 
         // Set the traversal result label text
@@ -253,17 +253,6 @@ vbox.PackStart(buttonBox, false, false, 0);
 
     private void DeleteRandomButton_Clicked(object sender, EventArgs e)
     {
-        // if (rbTree.Root != null)
-        // {
-        //     int randomValue = GetRandomValueFromTree(rbTree.Root);
-        //     rbTree.Delete(randomValue);
-        //     avlTree.Delete(randomValue);
-        //     QueueDraw();
-        // }
-        // else
-        // {
-        //     Console.WriteLine("The tree is empty.");
-        // }
         if (currentTreeType == TreeType.RedBlack)
         {
             if (rbTree.Root != null)
@@ -292,10 +281,10 @@ vbox.PackStart(buttonBox, false, false, 0);
         }
         else
         {
-            if (bstTree.Root != null)
+            if (bsTree.Root != null)
             {
-                int randomValue = GetRandomValueFromTree(bstTree.Root);
-                bstTree.Delete(randomValue);
+                int randomValue = GetRandomValueFromTree(bsTree.Root);
+                bsTree.Delete(randomValue);
                 QueueDraw();
             }
             else
@@ -360,7 +349,7 @@ vbox.PackStart(buttonBox, false, false, 0);
             }
             else
             {
-                bstTree.Insert(nodeValue);
+                bsTree.Insert(nodeValue);
             }
             QueueDraw();
             nodeValueEntry.Text = ""; // Clear the text box after successful insertion
@@ -385,7 +374,7 @@ vbox.PackStart(buttonBox, false, false, 0);
             }
             else
             {
-                bstTree.Delete(nodeValue);
+                bsTree.Delete(nodeValue);
             }
             QueueDraw();
             nodeValueEntry.Text = ""; // Clear the text box after successful deletion
@@ -422,7 +411,7 @@ vbox.PackStart(buttonBox, false, false, 0);
         }
         else
         {
-            treeWidth = CalculateTotalTreeWidth(bstTree.Root, 3);
+            treeWidth = CalculateTotalTreeWidth(bsTree.Root, 3);
         }
 
         // Get the window width
@@ -445,7 +434,7 @@ vbox.PackStart(buttonBox, false, false, 0);
         }
         else
         {
-            Draw(cr, bstTree.Root, 3);
+            Draw(cr, bsTree.Root, 3);
         }
     }
 
