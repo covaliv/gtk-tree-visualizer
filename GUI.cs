@@ -108,7 +108,7 @@ public class TreeVisualizer : Window
         showTraversalButton.Clicked += (sender, e) => ShowTraversalButton_Clicked(sender!, e, traversalComboBox);
         buttonBox2.Add(showTraversalButton);
 
-        Button showUpdatesButton = new Button("Show Updates");
+        Button showUpdatesButton = new Button("Show Explanation");
         showUpdatesButton.Clicked += ShowUpdatesButton_Clicked!;
         buttonBox2.Add(showUpdatesButton);
 
@@ -126,9 +126,13 @@ public class TreeVisualizer : Window
         {
             rbTree = new RedBlackTree<int>();
         }
-        else
+        else if (currentTreeType == TreeType.AVL)
         {
             avlTree = new AVLTree<int>();
+        }
+        else
+        {
+            bsTree = new BinarySearchTree<int>();
         }
         QueueDraw();
     }
