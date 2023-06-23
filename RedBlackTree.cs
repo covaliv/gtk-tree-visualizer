@@ -92,6 +92,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
                 Node uncle = node.Parent.Parent.Right!;
                 if (uncle != null && uncle.NodeColor == Color.Red)
                 {
+                    updatesLog.AppendLine($"Uncle {uncle.Value} is red. Recoloring nodes.");
                     node.Parent.NodeColor = Color.Black;
                     uncle.NodeColor = Color.Black;
                     node.Parent.Parent.NodeColor = Color.Red;
@@ -101,9 +102,11 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
                 {
                     if (node == node.Parent.Right)
                     {
+                        updatesLog.AppendLine($"Node {node.Value} is a right child. Performing left rotation.");
                         node = node.Parent;
                         RotateLeft(node);
                     }
+                    updatesLog.AppendLine($"Recoloring nodes and performing right rotation.");
                     node.Parent!.NodeColor = Color.Black;
                     node.Parent.Parent!.NodeColor = Color.Red;
                     RotateRight(node.Parent.Parent);
@@ -114,6 +117,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
                 Node uncle = node.Parent.Parent.Left!;
                 if (uncle != null && uncle.NodeColor == Color.Red)
                 {
+                    updatesLog.AppendLine($"Uncle {uncle.Value} is red. Recoloring nodes.");
                     node.Parent.NodeColor = Color.Black;
                     uncle.NodeColor = Color.Black;
                     node.Parent.Parent.NodeColor = Color.Red;
@@ -123,9 +127,11 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
                 {
                     if (node == node.Parent.Left)
                     {
+                        updatesLog.AppendLine($"Node {node.Value} is a left child. Performing right rotation.");
                         node = node.Parent;
                         RotateRight(node);
                     }
+                    updatesLog.AppendLine($"Recoloring nodes and performing left rotation.");
                     node.Parent!.NodeColor = Color.Black;
                     node.Parent.Parent!.NodeColor = Color.Red;
                     RotateLeft(node.Parent.Parent);
@@ -138,6 +144,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
 
     private void RotateLeft(Node node)
     {
+        updatesLog.AppendLine($"Rotated left around {node.Value}.");
         Node rightChild = node.Right!;
         node.Right = rightChild!.Left;
 
@@ -164,11 +171,11 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
         rightChild.Left = node;
         node.Parent = rightChild;
 
-        updatesLog.AppendLine($"Rotated left around {node.Value}.");
     }
 
     private void RotateRight(Node node)
     {
+        updatesLog.AppendLine($"Rotated right around {node.Value}.");
         Node leftChild = node.Left!;
         node.Left = leftChild!.Right;
 
@@ -195,7 +202,6 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
         leftChild.Right = node;
         node.Parent = leftChild;
 
-        updatesLog.AppendLine($"Rotated right around {node.Value}.");
     }
 
     public int Depth()
@@ -237,10 +243,12 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
         int comparisonResult = value.CompareTo(node.Value);
         if (comparisonResult < 0)
         {
+            updatesLog.AppendLine($"Searching for {value} in the left subtree of node {node.Value}.");
             return FindNode(node.Left, value);
         }
         else if (comparisonResult > 0)
         {
+            updatesLog.AppendLine($"Searching for {value} in the right subtree of node {node.Value}.");
             return FindNode(node.Right, value);
         }
         else
@@ -252,9 +260,11 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
 
     private void DeleteNode(Node nodeToDelete)
     {
+        updatesLog.AppendLine($"Starting deletion process for node with value {nodeToDelete.Value}.");
         if (nodeToDelete.Left != null && nodeToDelete.Right != null)
         {
             Node replacement = GetMaxNode(nodeToDelete.Left);
+            updatesLog.AppendLine($"Node {nodeToDelete.Value} has two children. Replacing with max value {replacement.Value} from left subtree.");
             nodeToDelete.Value = replacement.Value;
             nodeToDelete = replacement;
         }
@@ -263,18 +273,22 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
 
         if (nodeToDelete.IsRed)
         {
+            updatesLog.AppendLine($"Node {nodeToDelete.Value} is red. Replacing with its child.");
             ReplaceNode(nodeToDelete, child);
         }
         else if (child != null && child.IsRed)
         {
+            updatesLog.AppendLine($"Node {nodeToDelete.Value} is black and has a red child. Replacing with its red child and recoloring it black.");
             child.NodeColor = Color.Black;
             ReplaceNode(nodeToDelete, child);
         }
         else
         {
+            updatesLog.AppendLine($"Node {nodeToDelete.Value} is black and has no red children. Fixing tree after deletion.");
             Node? sibling = Sibling(nodeToDelete);
             if (sibling != null && sibling.IsRed)
             {
+                updatesLog.AppendLine($"Sibling {sibling.Value} of node {nodeToDelete.Value} is red. Recoloring sibling and parent, and rotating.");
                 nodeToDelete.Parent!.NodeColor = Color.Red;
                 sibling.NodeColor = Color.Black;
 
@@ -368,7 +382,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
             DeleteCase3(node);
         }
         updatesLog.AppendLine($"Delete case 2 performed for node {node.Value}.");
-}
+    }
 
     private void DeleteCase3(Node? node)
     {
@@ -396,8 +410,8 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
         }
 
         DeleteCase4(node);
-    updatesLog.AppendLine($"Delete case 2 performed for node {node.Value}.");
-}
+        updatesLog.AppendLine($"Delete case 3 performed for node {node.Value}.");
+    }
 
     private void DeleteCase4(Node? node)
     {
@@ -426,7 +440,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
                 RotateRight(node.Parent);
             }
         }
-    updatesLog.AppendLine($"Delete case 2 performed for node {node.Value}.");
-}
+        updatesLog.AppendLine($"Delete case 3 performed for node {node.Value}.");
+    }
 
 }

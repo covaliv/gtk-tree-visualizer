@@ -40,6 +40,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
     public void Insert(T value)
     {
         updatesLog = new StringBuilder();
+        updatesLog.AppendLine($"Inserting value {value} into the tree.");
         root = Insert(root!, value);
     }
 
@@ -69,16 +70,20 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         }
 
         node.Height = 1 + Math.Max(Height(node.Left), Height(node.Right));
+        updatesLog.AppendLine($"Updated height of node {node.Value} to {node.Height}.");
         int balance = GetBalance(node);
+        updatesLog.AppendLine($"Balance of node {node.Value} is {balance}.");
 
         if (balance > 1)
         {
             if (value.CompareTo(node.Left!.Value) < 0)
             {
+                updatesLog.AppendLine($"Left-left imbalance detected at node {node.Value}. Performing right rotation.");
                 return RotateRight(node);
             }
             else
             {
+                updatesLog.AppendLine($"Left-right imbalance detected at node {node.Value}. Performing left-right rotation.");
                 node.Left = RotateLeft(node.Left);
                 return RotateRight(node);
             }
@@ -88,10 +93,12 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         {
             if (value.CompareTo(node.Right!.Value) > 0)
             {
+                updatesLog.AppendLine($"Right-right imbalance detected at node {node.Value}. Performing left rotation.");
                 return RotateLeft(node);
             }
             else
             {
+                updatesLog.AppendLine($"Right-left imbalance detected at node {node.Value}. Performing right-left rotation.");
                 node.Right = RotateRight(node.Right);
                 return RotateLeft(node);
             }
@@ -133,6 +140,8 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         y.Height = 1 + Math.Max(Height(y.Left), Height(y.Right));
         x.Height = 1 + Math.Max(Height(x.Left), Height(x.Right));
 
+        updatesLog.AppendLine($"Rotation right complete. New heights: Node {y.Value} height {y.Height}, Node {x.Value} height {x.Height}.");
+
         return x;
     }
 
@@ -149,12 +158,15 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         x.Height = 1 + Math.Max(Height(x.Left), Height(x.Right));
         y.Height = 1 + Math.Max(Height(y.Left), Height(y.Right));
 
+        updatesLog.AppendLine($"Rotation left complete. New heights: Node {x.Value} height {x.Height}, Node {y.Value} height {y.Height}.");
+
         return y;
     }
 
     public void Delete(T value)
     {
         updatesLog = new StringBuilder();
+        updatesLog.AppendLine($"Deleting value {value} from the tree.");
         root = Delete(root!, value);
     }
 
@@ -215,16 +227,20 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         }
 
         node.Height = 1 + Math.Max(Height(node.Left), Height(node.Right));
+        updatesLog.AppendLine($"Updated height of node {node.Value} to {node.Height}.");
         int balance = GetBalance(node);
+        updatesLog.AppendLine($"Balance of node {node.Value} is {balance}.");
 
         if (balance > 1)
         {
             if (GetBalance(node.Left) >= 0)
             {
+                updatesLog.AppendLine($"Left-heavy imbalance detected at node {node.Value}. Performing right rotation.");
                 return RotateRight(node);
             }
             else
             {
+                updatesLog.AppendLine($"Left-right imbalance detected at node {node.Value}. Performing left-right rotation.");
                 node.Left = RotateLeft(node.Left!);
                 return RotateRight(node);
             }
@@ -234,10 +250,12 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         {
             if (GetBalance(node.Right) <= 0)
             {
+                updatesLog.AppendLine($"Right-heavy imbalance detected at node {node.Value}. Performing left rotation.");
                 return RotateLeft(node);
             }
             else
             {
+                updatesLog.AppendLine($"Right-left imbalance detected at node {node.Value}. Performing right-left rotation.");
                 node.Right = RotateRight(node.Right!);
                 return RotateLeft(node);
             }
@@ -252,9 +270,11 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
 
         while (current.Left != null)
         {
+            updatesLog.AppendLine($"Moving left to find the minimum node. Current node value: {current.Value}.");
             current = current.Left;
         }
 
+        updatesLog.AppendLine($"Minimum node found. Node value: {current.Value}.");
         return current;
     }
 }
