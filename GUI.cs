@@ -345,7 +345,7 @@ private void CreateMessageDialog(string message)
         // Create a Label and add it to the ScrolledWindow
         Label label = new Label(message);
         label.Wrap = true; // Enable text wrapping for better readability
-        scrolledWindow.AddWithViewport(label);
+        scrolledWindow.Add(label);
 
         // Add the ScrolledWindow to the Dialog's ContentArea
         dialog.ContentArea.PackStart(scrolledWindow, true, true, 0);
