@@ -4,17 +4,14 @@ using System;
 
 public class TreeVisualizer : Window
 {
-    private enum TreeType
-    {
-        RedBlack,
-        AVL
-    }
+enum TreeType { RedBlack, AVL, BinarySearchTree }
 
     private RedBlackTree<int> rbTree;
     private AVLTree<int> avlTree;
+    private BinarySearchTree<int> bstTree;
     private TreeType currentTreeType;
     private double next_x = 0;
-    private double nodeDistance = 23; // Distance between nodes
+    private double nodeDistance = 24; // Distance between nodes
     private Random random = new Random();
     private Entry nodeValueEntry;
     private Entry lowerBoundEntry;
@@ -26,6 +23,7 @@ public class TreeVisualizer : Window
     {
         rbTree = new RedBlackTree<int>();
         avlTree = new AVLTree<int>();
+        bstTree = new BinarySearchTree<int>();
         currentTreeType = TreeType.RedBlack;
 
         // Create a VBox layout
@@ -45,14 +43,14 @@ public class TreeVisualizer : Window
         Pango.FontDescription fontDescription = Pango.FontDescription.FromString("Arial 12");
         traversalResultLabel.ModifyFont(fontDescription);
         ScrolledWindow scrolledWindow = new ScrolledWindow();
-        scrolledWindow.SetSizeRequest(400, 30); // Set the desired width and height for the ScrolledWindow
+        scrolledWindow.SetSizeRequest(100, 5); // Set the desired width and height for the ScrolledWindow
         scrolledWindow.Add(traversalResultLabel);
         vbox.PackStart(scrolledWindow, false, false, 0);
 
         // Create a button box for the buttons
         Box buttonBox = new Box(Orientation.Horizontal, 10);
-        buttonBox.Margin = 5;
-        vbox.PackStart(buttonBox, false, false, 0);
+buttonBox.Margin = 5;
+vbox.PackStart(buttonBox, false, false, 0);
 
         // Create the Add Node button
         Button addNodeButton = new Button("Add Node");
@@ -97,6 +95,7 @@ public class TreeVisualizer : Window
         ComboBoxText treeTypeComboBox = new ComboBoxText();
         treeTypeComboBox.AppendText("Red-Black Tree");
         treeTypeComboBox.AppendText("AVL Tree");
+        treeTypeComboBox.AppendText("Binary Search Tree");
         treeTypeComboBox.Active = 0; // Set Red-Black Tree as the default
         treeTypeComboBox.Changed += TreeTypeComboBox_Changed;
         buttonBox.Add(treeTypeComboBox);
@@ -109,13 +108,9 @@ public class TreeVisualizer : Window
         buttonBox.PackStart(traversalComboBox, false, false, 0);
 
         // Create the Show Tree Traversal button
-        Button showTraversalButton = new Button("Show Tree Traversal");
+        Button showTraversalButton = new Button("Update Tree Traversal");
         showTraversalButton.Clicked += (sender, e) => ShowTraversalButton_Clicked(sender, e, traversalComboBox);
         buttonBox.Add(showTraversalButton);
-
-        // Add this line after adding the "Show Tree Traversal" button to buttonBox
-
-
 
         // Add the VBox to the window
         Add(vbox);
@@ -186,9 +181,13 @@ public class TreeVisualizer : Window
                 {
                     rbTree.Insert(randomValue);
                 }
-                else
+                else if (currentTreeType == TreeType.AVL)
                 {
                     avlTree.Insert(randomValue);
+                }
+                else
+                {
+                    bstTree.Insert(randomValue);
                 }
                 QueueDraw();
             }
@@ -212,13 +211,17 @@ public class TreeVisualizer : Window
         {
             PerformTraversal(rbTree.Root, traversalResult, selectedTraversal);
         }
-        else
+        else if (currentTreeType == TreeType.AVL)
         {
             PerformTraversal(avlTree.Root, traversalResult, selectedTraversal);
         }
+        else
+        {
+            PerformTraversal(bstTree.Root, traversalResult, selectedTraversal);
+        }
 
         // Set the traversal result label text
-        traversalResultLabel.Text = $"{selectedTraversal} traversal: " + string.Join("  ", traversalResult);
+        traversalResultLabel.Text = string.Join("  ", traversalResult);
     }
 
     private void PerformTraversal(dynamic node, List<int> traversalResult, string traversalType)
@@ -250,27 +253,67 @@ public class TreeVisualizer : Window
 
     private void DeleteRandomButton_Clicked(object sender, EventArgs e)
     {
-        if (rbTree.Root != null)
+        // if (rbTree.Root != null)
+        // {
+        //     int randomValue = GetRandomValueFromTree(rbTree.Root);
+        //     rbTree.Delete(randomValue);
+        //     avlTree.Delete(randomValue);
+        //     QueueDraw();
+        // }
+        // else
+        // {
+        //     Console.WriteLine("The tree is empty.");
+        // }
+        if (currentTreeType == TreeType.RedBlack)
         {
-            int randomValue = GetRandomValueFromTree(rbTree.Root);
-            rbTree.Delete(randomValue);
-            avlTree.Delete(randomValue);
-            QueueDraw();
+            if (rbTree.Root != null)
+            {
+                int randomValue = GetRandomValueFromTree(rbTree.Root);
+                rbTree.Delete(randomValue);
+                QueueDraw();
+            }
+            else
+            {
+                Console.WriteLine("The tree is empty.");
+            }
+        }
+        else if (currentTreeType == TreeType.AVL)
+        {
+            if (avlTree.Root != null)
+            {
+                int randomValue = GetRandomValueFromTree(avlTree.Root);
+                avlTree.Delete(randomValue);
+                QueueDraw();
+            }
+            else
+            {
+                Console.WriteLine("The tree is empty.");
+            }
         }
         else
         {
-            Console.WriteLine("The tree is empty.");
+            if (bstTree.Root != null)
+            {
+                int randomValue = GetRandomValueFromTree(bstTree.Root);
+                bstTree.Delete(randomValue);
+                QueueDraw();
+            }
+            else
+            {
+                Console.WriteLine("The tree is empty.");
+            }
         }
     }
 
-    private int GetRandomValueFromTree(RedBlackTree<int>.Node node)
+    private int GetRandomValueFromTree(dynamic node)
     {
         if (node == null)
         {
             throw new ArgumentException("The input node should not be null.");
         }
 
-        RedBlackTree<int>.Node currentNode = node;
+        // RedBlackTree<int>.Node currentNode = node;
+        dynamic currentNode = node;
         while (true)
         {
             int decision = random.Next(3);
@@ -311,9 +354,13 @@ public class TreeVisualizer : Window
             {
                 rbTree.Insert(nodeValue);
             }
-            else
+            else if (currentTreeType == TreeType.AVL)
             {
                 avlTree.Insert(nodeValue);
+            }
+            else
+            {
+                bstTree.Insert(nodeValue);
             }
             QueueDraw();
             nodeValueEntry.Text = ""; // Clear the text box after successful insertion
@@ -332,9 +379,13 @@ public class TreeVisualizer : Window
             {
                 rbTree.Delete(nodeValue);
             }
-            else
+            else if (currentTreeType == TreeType.AVL)
             {
                 avlTree.Delete(nodeValue);
+            }
+            else
+            {
+                bstTree.Delete(nodeValue);
             }
             QueueDraw();
             nodeValueEntry.Text = ""; // Clear the text box after successful deletion
@@ -358,8 +409,21 @@ public class TreeVisualizer : Window
         cr.LineWidth = 2.0;
 
         // Calculate the total width of the tree
-        double treeWidth = currentTreeType == TreeType.RedBlack ? CalculateTotalTreeWidth(rbTree.Root, 3) : CalculateTotalTreeWidth(avlTree.Root, 3);
-        System.Console.WriteLine("Tree width: " + treeWidth);
+        // double treeWidth = currentTreeType == TreeType.RedBlack ? CalculateTotalTreeWidth(rbTree.Root, 3) : CalculateTotalTreeWidth(avlTree.Root, 3);
+        // System.Console.WriteLine("Tree width: " + treeWidth);
+        double treeWidth;
+        if (currentTreeType == TreeType.RedBlack)
+        {
+            treeWidth = CalculateTotalTreeWidth(rbTree.Root, 3);
+        }
+        else if (currentTreeType == TreeType.AVL)
+        {
+            treeWidth = CalculateTotalTreeWidth(avlTree.Root, 3);
+        }
+        else
+        {
+            treeWidth = CalculateTotalTreeWidth(bstTree.Root, 3);
+        }
 
         // Get the window width
         double windowWidth = this.Allocation.Width;
@@ -375,9 +439,13 @@ public class TreeVisualizer : Window
         {
             Draw(cr, rbTree.Root, 3);
         }
-        else
+        else if (currentTreeType == TreeType.AVL)
         {
             Draw(cr, avlTree.Root, 3);
+        }
+        else
+        {
+            Draw(cr, bstTree.Root, 3);
         }
     }
 
