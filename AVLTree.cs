@@ -39,6 +39,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
 
     public void Insert(T value)
     {
+        updatesLog = new StringBuilder();
         root = Insert(root, value);
     }
 
@@ -153,6 +154,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
 
     public void Delete(T value)
     {
+        updatesLog = new StringBuilder();
         root = Delete(root, value);
     }
 

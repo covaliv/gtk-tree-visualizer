@@ -2,7 +2,7 @@ using System.Text;
 
 public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
 {
-    public StringBuilder Changes { get; private set; } = new StringBuilder();
+    public StringBuilder updatesLog { get; private set; } = new StringBuilder();
     public enum Color { Red, Black }
 
     public class Node : Tree<T>.Node
@@ -36,10 +36,11 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
 
     public void Insert(T value)
     {
+        updatesLog = new StringBuilder();
         if (root == null)
         {
             root = new Node(value) { NodeColor = Color.Black };
-            Changes.AppendLine($"Inserted {value} as root.");
+            updatesLog.AppendLine($"Inserted {value} as root.");
         }
         else
         {
@@ -55,7 +56,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
                     {
                         currentNode.Left = newNode;
                         newNode.Parent = currentNode;
-                        Changes.AppendLine($"Inserted {value} as left child of {currentNode.Value}.");
+                        updatesLog.AppendLine($"Inserted {value} as left child of {currentNode.Value}.");
                         break;
                     }
                     currentNode = currentNode.Left;
@@ -66,14 +67,14 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
                     {
                         currentNode.Right = newNode;
                         newNode.Parent = currentNode;
-                        Changes.AppendLine($"Inserted {value} as left child of {currentNode.Value}.");
+                        updatesLog.AppendLine($"Inserted {value} as left child of {currentNode.Value}.");
                         break;
                     }
                     currentNode = currentNode.Right;
                 }
                 else
                 {
-                    Changes.AppendLine($"Value {value} already exists in the tree.");
+                    updatesLog.AppendLine($"Value {value} already exists in the tree.");
                     return;
                 }
             }
@@ -163,7 +164,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
         rightChild.Left = node;
         node.Parent = rightChild;
 
-        Changes.AppendLine($"Rotated left around {node.Value}.");
+        updatesLog.AppendLine($"Rotated left around {node.Value}.");
     }
 
     private void RotateRight(Node node)
@@ -194,7 +195,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
         leftChild.Right = node;
         node.Parent = leftChild;
 
-        Changes.AppendLine($"Rotated right around {node.Value}.");
+        updatesLog.AppendLine($"Rotated right around {node.Value}.");
     }
 
     public int Depth()
@@ -217,14 +218,15 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
 
     public void Delete(T value)
     {
+        updatesLog = new StringBuilder();
         Node? nodeToDelete = FindNode(root, value);
         if (nodeToDelete == null)
         {
-            Changes.AppendLine($"Value {value} not found for deletion.");
+            updatesLog.AppendLine($"Value {value} not found for deletion.");
             return;
         }
 
-        Changes.AppendLine($"Deleting node with value {value}.");
+        updatesLog.AppendLine($"Deleting node with value {value}.");
         DeleteNode(nodeToDelete);
     }
 
@@ -243,7 +245,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
         }
         else
         {
-            Changes.AppendLine($"Found node with value {value}.");
+            updatesLog.AppendLine($"Found node with value {value}.");
             return node;
         }
     }
@@ -291,7 +293,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
 
             DeleteCase2(child);
         }
-        Changes.AppendLine($"Deleted node with value {nodeToDelete.Value}.");
+        updatesLog.AppendLine($"Deleted node with value {nodeToDelete.Value}.");
     }
 
     private Node GetMaxNode(Node node)
@@ -335,12 +337,12 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
 
         if (newNode != null)
         {
-            Changes.AppendLine($"Replaced node {oldNode.Value} with {newNode.Value}.");
+            updatesLog.AppendLine($"Replaced node {oldNode.Value} with {newNode.Value}.");
             newNode.Parent = oldNode.Parent;
         }
         else
         {
-            Changes.AppendLine($"Removed node {oldNode.Value}.");
+            updatesLog.AppendLine($"Removed node {oldNode.Value}.");
         }
     }
 
@@ -365,7 +367,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
         {
             DeleteCase3(node);
         }
-        Changes.AppendLine($"Delete case 2 performed for node {node.Value}.");
+        updatesLog.AppendLine($"Delete case 2 performed for node {node.Value}.");
 }
 
     private void DeleteCase3(Node? node)
@@ -394,7 +396,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
         }
 
         DeleteCase4(node);
-    Changes.AppendLine($"Delete case 2 performed for node {node.Value}.");
+    updatesLog.AppendLine($"Delete case 2 performed for node {node.Value}.");
 }
 
     private void DeleteCase4(Node? node)
@@ -424,7 +426,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
                 RotateRight(node.Parent);
             }
         }
-    Changes.AppendLine($"Delete case 2 performed for node {node.Value}.");
+    updatesLog.AppendLine($"Delete case 2 performed for node {node.Value}.");
 }
 
 }

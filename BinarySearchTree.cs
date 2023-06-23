@@ -39,6 +39,7 @@ public class BinarySearchTree<T> : Tree<T> where T : IComparable<T>
 
     public void Insert(T value)
     {
+        updatesLog = new StringBuilder();
         root = Insert(root, value);
         updatesLog.AppendLine($"Inserted {value} into the tree.");
     }
@@ -67,6 +68,7 @@ public class BinarySearchTree<T> : Tree<T> where T : IComparable<T>
 
     public void Delete(T value)
     {
+        updatesLog = new StringBuilder();
         root = Delete(root, value);
         updatesLog.AppendLine($"Deleted {value} from the tree.");
     }
