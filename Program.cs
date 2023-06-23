@@ -1,10 +1,10 @@
 ﻿using Gtk;
 using Cairo;
-using System;
+using System.Text;
 
 public class TreeVisualizer : Window
 {
-enum TreeType { RedBlack, AVL, BinarySearchTree }
+    enum TreeType { RedBlack, AVL, BinarySearchTree }
 
     private RedBlackTree<int> rbTree;
     private AVLTree<int> avlTree;
@@ -48,48 +48,53 @@ enum TreeType { RedBlack, AVL, BinarySearchTree }
         vbox.PackStart(scrolledWindow, false, false, 0);
 
         // Create a button box for the buttons
-        Box buttonBox = new Box(Orientation.Horizontal, 10);
-buttonBox.Margin = 5;
-vbox.PackStart(buttonBox, false, false, 0);
+        Box buttonBox1 = new Box(Orientation.Horizontal, 10);
+        buttonBox1.Margin = 5;
+        vbox.PackStart(buttonBox1, false, false, 0);
 
         // Create the Add Node button
         Button addNodeButton = new Button("Add Node");
         addNodeButton.Clicked += AddNodeButton_Clicked;
-        buttonBox.Add(addNodeButton);
 
         // Create a new Entry for the node value
         nodeValueEntry = new Entry();
         nodeValueEntry.PlaceholderText = "Enter node value";
-        buttonBox.Add(nodeValueEntry);
         // Create the Delete Node button
         Button deleteNodeButton = new Button("Delete Node");
         deleteNodeButton.Clicked += DeleteNodeButton_Clicked;
-        buttonBox.Add(deleteNodeButton);
 
         // Create a new Entry for the lower bound
         lowerBoundEntry = new Entry();
         lowerBoundEntry.PlaceholderText = "Enter lower bound";
-        buttonBox.Add(lowerBoundEntry);
 
         // Create a new Entry for the upper bound
         upperBoundEntry = new Entry();
         upperBoundEntry.PlaceholderText = "Enter upper bound";
-        buttonBox.Add(upperBoundEntry);
 
 
         // Create the Insert Random Value button
         Button insertRandomButton = new Button("Insert Random Value");
         insertRandomButton.Clicked += InsertRandomButton_Clicked;
-        buttonBox.Add(insertRandomButton);
 
         // Create the Delete Random Value button
         Button deleteRandomButton = new Button("Delete Random Value");
         deleteRandomButton.Clicked += DeleteRandomButton_Clicked;
-        buttonBox.Add(deleteRandomButton);
+
+        // Add the buttons and entries to the button box
+        buttonBox1.Add(addNodeButton);
+        buttonBox1.Add(nodeValueEntry);
+        buttonBox1.Add(deleteNodeButton);
+        buttonBox1.Add(lowerBoundEntry);
+        buttonBox1.Add(upperBoundEntry);
+        buttonBox1.Add(insertRandomButton);
+        buttonBox1.Add(deleteRandomButton);
+
+        Box buttonBox2 = new Box(Orientation.Horizontal, 10);
+        buttonBox2.Margin = 5;
+        vbox.PackStart(buttonBox2, false, false, 0);
 
         Button resetButton = new Button("Reset Tree");
         resetButton.Clicked += ResetButton_Clicked;
-        buttonBox.Add(resetButton);
 
         // Create a combo box for the tree type
         ComboBoxText treeTypeComboBox = new ComboBoxText();
@@ -98,19 +103,25 @@ vbox.PackStart(buttonBox, false, false, 0);
         treeTypeComboBox.AppendText("Binary Search Tree");
         treeTypeComboBox.Active = 0; // Set Red-Black Tree as the default
         treeTypeComboBox.Changed += TreeTypeComboBox_Changed;
-        buttonBox.Add(treeTypeComboBox);
 
         ComboBoxText traversalComboBox = new ComboBoxText();
         traversalComboBox.AppendText("Inorder");
         traversalComboBox.AppendText("Preorder");
         traversalComboBox.AppendText("Postorder");
         traversalComboBox.Active = 0; // Set Inorder as the default selection
-        buttonBox.PackStart(traversalComboBox, false, false, 0);
+        buttonBox2.Add(resetButton);
+        buttonBox2.Add(resetButton);
+        buttonBox2.Add(treeTypeComboBox);
+        buttonBox2.PackStart(traversalComboBox, false, false, 0);
 
         // Create the Show Tree Traversal button
         Button showTraversalButton = new Button("Update Tree Traversal");
         showTraversalButton.Clicked += (sender, e) => ShowTraversalButton_Clicked(sender, e, traversalComboBox);
-        buttonBox.Add(showTraversalButton);
+        buttonBox2.Add(showTraversalButton);
+
+        Button showUpdatesButton = new Button("Show Updates");
+        showUpdatesButton.Clicked += ShowUpdatesButton_Clicked;
+        buttonBox2.Add(showUpdatesButton);
 
         // Add the VBox to the window
         Add(vbox);
@@ -139,6 +150,31 @@ vbox.PackStart(buttonBox, false, false, 0);
         ComboBoxText comboBox = (ComboBoxText)sender;
         currentTreeType = (TreeType)comboBox.Active;
         QueueDraw();
+    }
+
+    private void ShowUpdatesButton_Clicked(object sender, EventArgs e)
+    {
+        StringBuilder updatesLog;
+
+        if (currentTreeType == TreeType.RedBlack)
+        {
+            updatesLog = rbTree.updatesLog;
+        }
+        else if (currentTreeType == TreeType.AVL)
+        {
+            updatesLog = avlTree.updatesLog;
+        }
+        else
+        {
+            updatesLog = bsTree.updatesLog;
+        }
+
+        using (MessageDialog dialog = new MessageDialog(this, DialogFlags.Modal, MessageType.Info, ButtonsType.Ok, updatesLog.ToString()))
+        {
+            dialog.Title = "Recent Updates";
+            dialog.Run();
+            dialog.Destroy();
+        }
     }
 
     private int? ShowInputDialog()
