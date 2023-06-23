@@ -1,7 +1,8 @@
-using System;
+using System.Text;
 
 public class BinarySearchTree<T> : Tree<T> where T : IComparable<T>
 {
+    public StringBuilder updatesLog { get; private set; } = new StringBuilder();
     public class Node : Tree<T>.Node
     {
         public T Value { get; set; }
@@ -39,6 +40,7 @@ public class BinarySearchTree<T> : Tree<T> where T : IComparable<T>
     public void Insert(T value)
     {
         root = Insert(root, value);
+        updatesLog.AppendLine($"Inserted {value} into the tree.");
     }
 
     private Node Insert(Node? node, T value)
@@ -51,10 +53,12 @@ public class BinarySearchTree<T> : Tree<T> where T : IComparable<T>
         int comparison = value.CompareTo(node.Value);
         if (comparison < 0)
         {
+            updatesLog.AppendLine($"Value {value} is less than {node.Value}, moving to the left child.");
             node.Left = Insert(node.Left, value);
         }
         else if (comparison > 0)
         {
+            updatesLog.AppendLine($"Value {value} is greater than {node.Value}, moving to the right child.");
             node.Right = Insert(node.Right, value);
         }
 
@@ -64,6 +68,7 @@ public class BinarySearchTree<T> : Tree<T> where T : IComparable<T>
     public void Delete(T value)
     {
         root = Delete(root, value);
+        updatesLog.AppendLine($"Deleted {value} from the tree.");
     }
 
     private Node? Delete(Node? node, T value)
@@ -77,24 +82,30 @@ public class BinarySearchTree<T> : Tree<T> where T : IComparable<T>
 
         if (comparison < 0)
         {
+            updatesLog.AppendLine($"Value {value} is less than {node.Value}, moving to the left child.");
             node.Left = Delete(node.Left, value);
         }
         else if (comparison > 0)
         {
+            updatesLog.AppendLine($"Value {value} is greater than {node.Value}, moving to the right child.");
             node.Right = Delete(node.Right, value);
         }
         else
         {
             if (node.Left == null)
             {
+                updatesLog.AppendLine($"Node {node.Value} is a leaf node or has only a right child. Replacing it with its right child.");
                 return node.Right;
             }
             else if (node.Right == null)
             {
+                updatesLog.AppendLine($"Node {node.Value} has only a left child. Replacing it with its left child.");
                 return node.Left;
             }
 
-            node.Value = MinValue(node.Right);
+            T minValue = MinValue(node.Right);
+            updatesLog.AppendLine($"Node {node.Value} has two children. Replacing it with the smallest value {minValue} in its right subtree.");
+            node.Value = minValue;
 
             node.Right = Delete(node.Right, node.Value);
         }

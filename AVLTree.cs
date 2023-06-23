@@ -1,7 +1,8 @@
-using System;
+using System.Text;
 
 public class AVLTree<T> : Tree<T> where T : IComparable<T>
 {
+    public StringBuilder updatesLog = new StringBuilder();
     public class Node : Tree<T>.Node
     {
         public T Value { get; set; }
@@ -45,20 +46,24 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
     {
         if (node == null)
         {
+            updatesLog.AppendLine($"Inserting {value} as a new node.");
             return new Node(value);
         }
 
         int comparison = value.CompareTo(node.Value);
         if (comparison < 0)
         {
+            updatesLog.AppendLine($"Value {value} is less than {node.Value}, moving left.");
             node.Left = Insert(node.Left, value);
         }
         else if (comparison > 0)
         {
+            updatesLog.AppendLine($"Value {value} is greater than {node.Value}, moving right.");
             node.Right = Insert(node.Right, value);
         }
         else
         {
+            updatesLog.AppendLine($"Value {value} already exists in the tree, not inserting.");
             return node;
         }
 
@@ -116,6 +121,8 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
 
     private Node RotateRight(Node y)
     {
+        updatesLog.AppendLine($"Rotating right at node {y.Value}.");
+
         Node x = y.Left;
         Node T2 = x.Right;
 
@@ -130,6 +137,8 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
 
     private Node RotateLeft(Node x)
     {
+        updatesLog.AppendLine($"Rotating left at node {x.Value}.");
+
         Node y = x.Right;
         Node T2 = y.Left;
 
@@ -151,6 +160,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
     {
         if (node == null)
         {
+            updatesLog.AppendLine($"Node with value {value} not found, nothing to delete.");
             return node;
         }
 
@@ -158,10 +168,12 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
 
         if (comparison < 0)
         {
+            updatesLog.AppendLine($"Value {value} is less than {node.Value}, moving left.");
             node.Left = Delete(node.Left, value);
         }
         else if (comparison > 0)
         {
+            updatesLog.AppendLine($"Value {value} is greater than {node.Value}, moving right.");
             node.Right = Delete(node.Right, value);
         }
         else
