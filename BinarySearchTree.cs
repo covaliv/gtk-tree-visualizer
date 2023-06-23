@@ -6,8 +6,8 @@ public class BinarySearchTree<T> : Tree<T> where T : IComparable<T>
     public class Node : Tree<T>.Node
     {
         public T Value { get; set; }
-        public new Node? Left { get; set; }
-        public new Node? Right { get; set; }
+        public Node? Left { get; set; }
+        public Node? Right { get; set; }
 
         Tree<T>.Node? Tree<T>.Node.Left
         {

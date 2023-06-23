@@ -6,8 +6,8 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
     public class Node : Tree<T>.Node
     {
         public T Value { get; set; }
-        public new Node? Left { get; set; }
-        public new Node? Right { get; set; }
+        public Node? Left { get; set; }
+        public Node? Right { get; set; }
         public int Height { get; set; }
 
         Tree<T>.Node? Tree<T>.Node.Left
@@ -40,7 +40,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
     public void Insert(T value)
     {
         updatesLog = new StringBuilder();
-        root = Insert(root, value);
+        root = Insert(root!, value);
     }
 
     private Node Insert(Node node, T value)
@@ -55,12 +55,12 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         if (comparison < 0)
         {
             updatesLog.AppendLine($"Value {value} is less than {node.Value}, moving left.");
-            node.Left = Insert(node.Left, value);
+            node.Left = Insert(node.Left!, value);
         }
         else if (comparison > 0)
         {
             updatesLog.AppendLine($"Value {value} is greater than {node.Value}, moving right.");
-            node.Right = Insert(node.Right, value);
+            node.Right = Insert(node.Right!, value);
         }
         else
         {
@@ -73,7 +73,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
 
         if (balance > 1)
         {
-            if (value.CompareTo(node.Left.Value) < 0)
+            if (value.CompareTo(node.Left!.Value) < 0)
             {
                 return RotateRight(node);
             }
@@ -86,7 +86,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
 
         if (balance < -1)
         {
-            if (value.CompareTo(node.Right.Value) > 0)
+            if (value.CompareTo(node.Right!.Value) > 0)
             {
                 return RotateLeft(node);
             }
@@ -124,8 +124,8 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
     {
         updatesLog.AppendLine($"Rotating right at node {y.Value}.");
 
-        Node x = y.Left;
-        Node T2 = x.Right;
+        Node x = y.Left!;
+        Node T2 = x.Right!;
 
         x.Right = y;
         y.Left = T2;
@@ -140,8 +140,8 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
     {
         updatesLog.AppendLine($"Rotating left at node {x.Value}.");
 
-        Node y = x.Right;
-        Node T2 = y.Left;
+        Node y = x.Right!;
+        Node T2 = y.Left!;
 
         y.Left = x;
         x.Right = T2;
@@ -155,7 +155,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
     public void Delete(T value)
     {
         updatesLog = new StringBuilder();
-        root = Delete(root, value);
+        root = Delete(root!, value);
     }
 
     private Node Delete(Node node, T value)
@@ -163,7 +163,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         if (node == null)
         {
             updatesLog.AppendLine($"Node with value {value} not found, nothing to delete.");
-            return node;
+            return node!;
         }
 
         int comparison = value.CompareTo(node.Value);
@@ -171,30 +171,30 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         if (comparison < 0)
         {
             updatesLog.AppendLine($"Value {value} is less than {node.Value}, moving left.");
-            node.Left = Delete(node.Left, value);
+            node.Left = Delete(node.Left!, value);
         }
         else if (comparison > 0)
         {
             updatesLog.AppendLine($"Value {value} is greater than {node.Value}, moving right.");
-            node.Right = Delete(node.Right, value);
+            node.Right = Delete(node.Right!, value);
         }
         else
         {
             if (node.Left == null || node.Right == null)
             {
-                Node temp = null;
+                Node temp = null!;
                 if (temp == node.Left)
                 {
-                    temp = node.Right;
+                    temp = node.Right!;
                 }
                 else
                 {
-                    temp = node.Left;
+                    temp = node.Left!;
                 }
 
                 if (temp == null)
                 {
-                    node = null;
+                    node = null!;
                 }
                 else
                 {
@@ -211,7 +211,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
 
         if (node == null)
         {
-            return node;
+            return node!;
         }
 
         node.Height = 1 + Math.Max(Height(node.Left), Height(node.Right));
@@ -225,7 +225,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
             }
             else
             {
-                node.Left = RotateLeft(node.Left);
+                node.Left = RotateLeft(node.Left!);
                 return RotateRight(node);
             }
         }
@@ -238,7 +238,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
             }
             else
             {
-                node.Right = RotateRight(node.Right);
+                node.Right = RotateRight(node.Right!);
                 return RotateLeft(node);
             }
         }

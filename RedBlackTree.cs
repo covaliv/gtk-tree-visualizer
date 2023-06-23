@@ -85,11 +85,11 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
 
     private void FixTreeAfterInsert(Node node)
     {
-        while (node != root && node.Parent.NodeColor == Color.Red)
+        while (node != root && node.Parent!.NodeColor == Color.Red)
         {
-            if (node.Parent == node.Parent.Parent.Left)
+            if (node.Parent == node.Parent.Parent!.Left)
             {
-                Node uncle = node.Parent.Parent.Right;
+                Node uncle = node.Parent.Parent.Right!;
                 if (uncle != null && uncle.NodeColor == Color.Red)
                 {
                     node.Parent.NodeColor = Color.Black;
@@ -104,14 +104,14 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
                         node = node.Parent;
                         RotateLeft(node);
                     }
-                    node.Parent.NodeColor = Color.Black;
-                    node.Parent.Parent.NodeColor = Color.Red;
+                    node.Parent!.NodeColor = Color.Black;
+                    node.Parent.Parent!.NodeColor = Color.Red;
                     RotateRight(node.Parent.Parent);
                 }
             }
             else
             {
-                Node uncle = node.Parent.Parent.Left;
+                Node uncle = node.Parent.Parent.Left!;
                 if (uncle != null && uncle.NodeColor == Color.Red)
                 {
                     node.Parent.NodeColor = Color.Black;
@@ -126,20 +126,20 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
                         node = node.Parent;
                         RotateRight(node);
                     }
-                    node.Parent.NodeColor = Color.Black;
-                    node.Parent.Parent.NodeColor = Color.Red;
+                    node.Parent!.NodeColor = Color.Black;
+                    node.Parent.Parent!.NodeColor = Color.Red;
                     RotateLeft(node.Parent.Parent);
                 }
             }
         }
 
-        root.NodeColor = Color.Black;
+        root!.NodeColor = Color.Black;
     }
 
     private void RotateLeft(Node node)
     {
-        Node rightChild = node.Right;
-        node.Right = rightChild.Left;
+        Node rightChild = node.Right!;
+        node.Right = rightChild!.Left;
 
         if (rightChild.Left != null)
         {
@@ -169,8 +169,8 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
 
     private void RotateRight(Node node)
     {
-        Node leftChild = node.Left;
-        node.Left = leftChild.Right;
+        Node leftChild = node.Left!;
+        node.Left = leftChild!.Right;
 
         if (leftChild.Right != null)
         {
@@ -200,7 +200,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
 
     public int Depth()
     {
-        return Depth(Root);
+        return Depth(Root!);
     }
 
     private int Depth(Node node)
@@ -210,8 +210,8 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
             return 0;
         }
 
-        int leftDepth = Depth(node.Left);
-        int rightDepth = Depth(node.Right);
+        int leftDepth = Depth(node.Left!);
+        int rightDepth = Depth(node.Right!);
 
         return Math.Max(leftDepth, rightDepth) + 1;
     }
@@ -275,7 +275,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
             Node? sibling = Sibling(nodeToDelete);
             if (sibling != null && sibling.IsRed)
             {
-                nodeToDelete.Parent.NodeColor = Color.Red;
+                nodeToDelete.Parent!.NodeColor = Color.Red;
                 sibling.NodeColor = Color.Black;
 
                 if (nodeToDelete == nodeToDelete.Parent.Left)
@@ -354,7 +354,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
         if (sibling != null && !sibling.IsRed && (sibling.Left == null || !sibling.Left.IsRed) && (sibling.Right == null || !sibling.Right.IsRed))
         {
             sibling.NodeColor = Color.Red;
-            if (node.Parent.IsRed)
+            if (node.Parent!.IsRed)
             {
                 node.Parent.NodeColor = Color.Black;
             }
@@ -377,7 +377,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
         Node? sibling = Sibling(node);
         if (sibling != null && !sibling.IsRed)
         {
-            if (node == node.Parent.Left &&
+            if (node == node.Parent!.Left &&
                 (sibling.Right == null || !sibling.Right.IsRed) &&
                 sibling.Left != null && sibling.Left.IsRed)
             {
@@ -406,7 +406,7 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
         Node? sibling = Sibling(node);
         if (sibling != null)
         {
-            sibling.NodeColor = node.Parent.NodeColor;
+            sibling.NodeColor = node.Parent!.NodeColor;
             node.Parent.NodeColor = Color.Black;
 
             if (node == node.Parent.Left)
