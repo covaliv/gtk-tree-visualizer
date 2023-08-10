@@ -4,7 +4,12 @@ using System.Text;
 
 public class TreeVisualizer : Window
 {
-    enum TreeType { RedBlack, AVL, BinarySearchTree }
+    enum TreeType
+    {
+        RedBlack,
+        AVL,
+        BinarySearchTree
+    }
 
     private RedBlackTree<int> rbTree;
     private AVLTree<int> avlTree;
@@ -122,26 +127,32 @@ public class TreeVisualizer : Window
 
     private void ResetButton_Clicked(object sender, EventArgs e)
     {
-        if (currentTreeType == TreeType.RedBlack)
+        // create a new tree based on the current tree type
+        switch (currentTreeType)
         {
-            rbTree = new RedBlackTree<int>();
+            case TreeType.RedBlack:
+                rbTree = new RedBlackTree<int>();
+                break;
+            case TreeType.AVL:
+                avlTree = new AVLTree<int>();
+                break;
+            default:
+                bsTree = new BinarySearchTree<int>();
+                break;
         }
-        else if (currentTreeType == TreeType.AVL)
-        {
-            avlTree = new AVLTree<int>();
-        }
-        else
-        {
-            bsTree = new BinarySearchTree<int>();
-        }
+
+        // redraw the canvas to show the new tree
         QueueDraw();
     }
 
 
     private void TreeTypeComboBox_Changed(object sender, EventArgs e)
     {
+        // get the selected tree type from the combo box
         ComboBoxText comboBox = (ComboBoxText)sender;
         currentTreeType = (TreeType)comboBox.Active;
+
+        // redraw the canvas to show the new tree
         QueueDraw();
     }
 
@@ -149,17 +160,18 @@ public class TreeVisualizer : Window
     {
         StringBuilder updatesLog;
 
-        if (currentTreeType == TreeType.RedBlack)
+        // get the updates log for the current tree type
+        switch (currentTreeType)
         {
-            updatesLog = rbTree.updatesLog;
-        }
-        else if (currentTreeType == TreeType.AVL)
-        {
-            updatesLog = avlTree.updatesLog;
-        }
-        else
-        {
-            updatesLog = bsTree.updatesLog;
+            case TreeType.RedBlack:
+                updatesLog = rbTree.updatesLog;
+                break;
+            case TreeType.AVL:
+                updatesLog = avlTree.updatesLog;
+                break;
+            default:
+                updatesLog = bsTree.updatesLog;
+                break;
         }
 
         if (updatesLog.Length == 0)
@@ -169,96 +181,120 @@ public class TreeVisualizer : Window
 
         // create a dialog to display the updates log
         CreateMessageDialog(updatesLog.ToString());
-
     }
 
-    private int? ShowInputDialog()
+private int? ShowInputDialog()
+{
+    int? result = null;
+
+    // create a new dialog box with "Add Node" as the title
+    using (Dialog dialog = new Dialog("Add Node", this, DialogFlags.Modal))
     {
-        int? result = null;
+        // add "OK" and "Cancel" buttons to the dialog
+        dialog.AddButton("OK", ResponseType.Ok);
+        dialog.AddButton("Cancel", ResponseType.Cancel);
 
-        using (Dialog dialog = new Dialog("Add Node", this, DialogFlags.Modal))
+        // add an entry field to the dialog
+        Entry entry = new Entry();
+        entry.ActivatesDefault = true;
+        dialog.ContentArea.PackStart(entry, true, true, 0);
+
+        // set the default response to "OK"
+        dialog.DefaultResponse = ResponseType.Ok;
+
+        // show the dialog
+        dialog.ShowAll();
+
+        // wait for the user to respond
+        int response = dialog.Run();
+
+        // if the user clicked "OK", try to parse the input as an integer
+        if (response == (int)ResponseType.Ok)
         {
-            dialog.AddButton("OK", ResponseType.Ok);
-            dialog.AddButton("Cancel", ResponseType.Cancel);
-
-            Entry entry = new Entry();
-            entry.ActivatesDefault = true;
-            dialog.ContentArea.PackStart(entry, true, true, 0);
-            dialog.DefaultResponse = ResponseType.Ok;
-
-            dialog.ShowAll();
-            int response = dialog.Run();
-
-            if (response == (int)ResponseType.Ok)
+            if (int.TryParse(entry.Text, out int value))
             {
-                if (int.TryParse(entry.Text, out int value))
-                {
-                    result = value;
-                }
+                result = value;
             }
         }
-
-        return result;
     }
 
-    private void InsertRandomButton_Clicked(object sender, EventArgs e)
+    // return the parsed integer, or null if the user clicked "Cancel"
+    return result;
+}
+
+private void InsertRandomButton_Clicked(object sender, EventArgs e)
+{
+    // parse the lower and upper bounds from the input fields
+    if (int.TryParse(lowerBoundEntry.Text, out int lowerBound) &&
+        int.TryParse(upperBoundEntry.Text, out int upperBound))
     {
-        if (int.TryParse(lowerBoundEntry.Text, out int lowerBound) && int.TryParse(upperBoundEntry.Text, out int upperBound))
+        // check that the lower bound is less than or equal to the upper bound
+        if (lowerBound <= upperBound)
         {
-            if (lowerBound <= upperBound)
+            // generate a random value within the specified range
+            int randomValue = random.Next(lowerBound, upperBound + 1);
+
+            // insert the random value into the current tree
+            switch (currentTreeType)
             {
-                int randomValue = random.Next(lowerBound, upperBound + 1);
-                if (currentTreeType == TreeType.RedBlack)
-                {
+                case TreeType.RedBlack:
                     rbTree.Insert(randomValue);
-                }
-                else if (currentTreeType == TreeType.AVL)
-                {
+                    break;
+                case TreeType.AVL:
                     avlTree.Insert(randomValue);
-                }
-                else
-                {
+                    break;
+                default:
                     bsTree.Insert(randomValue);
-                }
-                QueueDraw();
+                    break;
             }
-            else
-            {
-                CreateMessageDialog("Invalid input. The lower bound must be less than or equal to the upper bound.");
-            }
+
+            // redraw the canvas to show the updated tree
+            QueueDraw();
         }
         else
         {
-            CreateMessageDialog("Invalid input. The lower bound and upper bound must be integers.");
+            // show an error message if the lower bound is greater than the upper bound
+            CreateMessageDialog("Invalid input. The lower bound must be less than or equal to the upper bound.");
         }
     }
-
-    private void ShowTraversalButton_Clicked(object sender, EventArgs e, ComboBoxText traversalComboBox)
+    else
     {
-        string selectedTraversal = traversalComboBox.ActiveText;
-        List<int> traversalResult = new List<int>();
-
-        if (currentTreeType == TreeType.RedBlack)
-        {
-            PerformTraversal(rbTree.Root!, traversalResult, selectedTraversal);
-        }
-        else if (currentTreeType == TreeType.AVL)
-        {
-            PerformTraversal(avlTree.Root!, traversalResult, selectedTraversal);
-        }
-        else
-        {
-            PerformTraversal(bsTree.Root!, traversalResult, selectedTraversal);
-        }
-
-        // Set the traversal result label text
-        if (traversalResult.Count == 0)
-        {
-            CreateMessageDialog("The tree is empty.");
-            return;
-        }
-        CreateMessageDialog(string.Join("  ", traversalResult));
+        // show an error message if the input is not valid
+        CreateMessageDialog("Invalid input. The lower bound and upper bound must be integers.");
     }
+}
+
+private void ShowTraversalButton_Clicked(object sender, EventArgs e, ComboBoxText traversalComboBox)
+{
+    // get the selected traversal from the combo box
+    string selectedTraversal = traversalComboBox.ActiveText;
+
+    // create a list to store the traversal result
+    List<int> traversalResult = new List<int>();
+
+    // perform the selected traversal on the current tree
+    switch (currentTreeType)
+    {
+        case TreeType.RedBlack:
+            PerformTraversal(rbTree.Root!, traversalResult, selectedTraversal);
+            break;
+        case TreeType.AVL:
+            PerformTraversal(avlTree.Root!, traversalResult, selectedTraversal);
+            break;
+        default:
+            PerformTraversal(bsTree.Root!, traversalResult, selectedTraversal);
+            break;
+    }
+
+    // display the traversal result in a message dialog
+    if (traversalResult.Count == 0)
+    {
+        CreateMessageDialog("The tree is empty.");
+        return;
+    }
+
+    CreateMessageDialog(string.Join("  ", traversalResult));
+}
 
     private void PerformTraversal(dynamic node, List<int> traversalResult, string traversalType)
     {
@@ -288,75 +324,97 @@ public class TreeVisualizer : Window
     }
 
     private void DeleteRandomButton_Clicked(object sender, EventArgs e)
+{
+    // check which type of tree is currently selected
+    if (currentTreeType == TreeType.RedBlack)
     {
-        if (currentTreeType == TreeType.RedBlack)
+        // check if the tree is empty
+        if (rbTree.Root != null)
         {
-            if (rbTree.Root != null)
-            {
-                int randomValue = GetRandomValueFromTree(rbTree.Root);
-                rbTree.Delete(randomValue);
-                QueueDraw();
-            }
-            else
-            {
-                CreateMessageDialog("The tree is empty.");
-            }
-        }
-        else if (currentTreeType == TreeType.AVL)
-        {
-            if (avlTree.Root != null)
-            {
-                int randomValue = GetRandomValueFromTree(avlTree.Root);
-                avlTree.Delete(randomValue);
-                QueueDraw();
-            }
-            else
-            {
-                CreateMessageDialog("The tree is empty.");
-            }
+            // get a random value from the tree
+            int randomValue = GetRandomValueFromTree(rbTree.Root);
+
+            // delete the random value from the tree
+            rbTree.Delete(randomValue);
+
+            // redraw the canvas to show the updated tree
+            QueueDraw();
         }
         else
         {
-            if (bsTree.Root != null)
-            {
-                int randomValue = GetRandomValueFromTree(bsTree.Root);
-                bsTree.Delete(randomValue);
-                QueueDraw();
-            }
-            else
-            {
-                CreateMessageDialog("The tree is empty.");
-            }
+            // show an error message if the tree is empty
+            CreateMessageDialog("The tree is empty.");
         }
     }
-
-
-private void CreateMessageDialog(string message)
-{
-    using (Dialog dialog = new Dialog(currentTreeType.ToString(), this, DialogFlags.Modal))
+    else if (currentTreeType == TreeType.AVL)
     {
-        dialog.AddButton("OK", ResponseType.Ok);
+        // check if the tree is empty
+        if (avlTree.Root != null)
+        {
+            // get a random value from the tree
+            int randomValue = GetRandomValueFromTree(avlTree.Root);
 
-        // Create a ScrolledWindow
-        ScrolledWindow scrolledWindow = new ScrolledWindow();
-        scrolledWindow.SetPolicy(PolicyType.Automatic, PolicyType.Automatic);
-        scrolledWindow.ShadowType = ShadowType.EtchedIn;
+            // delete the random value from the tree
+            avlTree.Delete(randomValue);
 
-        // Create a Label and add it to the ScrolledWindow
-        Label label = new Label(message);
-        label.Wrap = true; // Enable text wrapping for better readability
-        scrolledWindow.Add(label);
+            // redraw the canvas to show the updated tree
+            QueueDraw();
+        }
+        else
+        {
+            // show an error message if the tree is empty
+            CreateMessageDialog("The tree is empty.");
+        }
+    }
+    else
+    {
+        // check if the tree is empty
+        if (bsTree.Root != null)
+        {
+            // get a random value from the tree
+            int randomValue = GetRandomValueFromTree(bsTree.Root);
 
-        // Add the ScrolledWindow to the Dialog's ContentArea
-        dialog.ContentArea.PackStart(scrolledWindow, true, true, 0);
+            // delete the random value from the tree
+            bsTree.Delete(randomValue);
 
-        // Set the preferred size of the ScrolledWindow
-        scrolledWindow.SetSizeRequest(400, 200); // Adjust width and height as needed
-
-        dialog.ShowAll();
-        dialog.Run();
+            // redraw the canvas to show the updated tree
+            QueueDraw();
+        }
+        else
+        {
+            // show an error message if the tree is empty
+            CreateMessageDialog("The tree is empty.");
+        }
     }
 }
+
+
+    private void CreateMessageDialog(string message)
+    {
+        using (Dialog dialog = new Dialog(currentTreeType.ToString(), this, DialogFlags.Modal))
+        {
+            dialog.AddButton("OK", ResponseType.Ok);
+
+            // Create a ScrolledWindow
+            ScrolledWindow scrolledWindow = new ScrolledWindow();
+            scrolledWindow.SetPolicy(PolicyType.Automatic, PolicyType.Automatic);
+            scrolledWindow.ShadowType = ShadowType.EtchedIn;
+
+            // Create a Label and add it to the ScrolledWindow
+            Label label = new Label(message);
+            label.Wrap = true; // Enable text wrapping for better readability
+            scrolledWindow.Add(label);
+
+            // Add the ScrolledWindow to the Dialog's ContentArea
+            dialog.ContentArea.PackStart(scrolledWindow, true, true, 0);
+
+            // Set the preferred size of the ScrolledWindow
+            scrolledWindow.SetSizeRequest(400, 200); // Adjust width and height as needed
+
+            dialog.ShowAll();
+            dialog.Run();
+        }
+    }
 
     private int GetRandomValueFromTree(dynamic node)
     {
@@ -382,6 +440,7 @@ private void CreateMessageDialog(string message)
                     {
                         return currentNode.Value;
                     }
+
                     break;
                 case 1: // Go to the right child
                     if (currentNode.Right != null)
@@ -392,6 +451,7 @@ private void CreateMessageDialog(string message)
                     {
                         return currentNode.Value;
                     }
+
                     break;
                 default: // Return current node value
                     return currentNode.Value;
@@ -415,6 +475,7 @@ private void CreateMessageDialog(string message)
             {
                 bsTree.Insert(nodeValue);
             }
+
             QueueDraw();
             nodeValueEntry.Text = ""; // Clear the text box after successful insertion
         }
@@ -424,6 +485,7 @@ private void CreateMessageDialog(string message)
             CreateMessageDialog("Invalid input. Please enter a valid integer.");
         }
     }
+
     private void DeleteNodeButton_Clicked(object sender, EventArgs e)
     {
         if (int.TryParse(nodeValueEntry.Text, out int nodeValue))
@@ -440,6 +502,7 @@ private void CreateMessageDialog(string message)
             {
                 bsTree.Delete(nodeValue);
             }
+
             QueueDraw();
             nodeValueEntry.Text = ""; // Clear the text box after successful deletion
         }
@@ -526,39 +589,48 @@ private void CreateMessageDialog(string message)
     }
 
     double Draw(Context cr, dynamic node, double depth)
+{
+    // return 0 if the node is null
+    if (node == null)
     {
-        if (node == null)
-        {
-            return 0;
-        }
-
-        double left_x = 0, right_x = 0;
-
-        if (node.Left != null)
-        {
-            left_x = Draw(cr, node.Left, depth + 1.5);
-            DrawLine(cr, next_x * nodeDistance, depth * nodeDistance, left_x * nodeDistance, (depth + 1.5) * nodeDistance, 17);
-        }
-
-        double my_x = next_x++;
-
-        bool isRed = node.GetType() == typeof(RedBlackTree<int>.Node) ? node.IsRed : false;
-
-        if (node.Right != null)
-        {
-            right_x = Draw(cr, node.Right, depth + 1.5);
-            DrawLine(cr, my_x * nodeDistance, depth * nodeDistance, right_x * nodeDistance, (depth + 1.5) * nodeDistance, 17);
-        }
-
-        int balanceFactor = 0;
-        if (currentTreeType == TreeType.AVL)
-        {
-            balanceFactor = avlTree.GetBalance(node);
-        }
-        DrawCircle(cr, my_x * nodeDistance, depth * nodeDistance, 17, node.Value.ToString(), isRed, balanceFactor);
-
-        return my_x;
+        return 0;
     }
+
+    double left_x = 0, right_x = 0;
+
+    // draw the left subtree and get its x-coordinate
+    if (node.Left != null)
+    {
+        left_x = Draw(cr, node.Left, depth + 1.5);
+        DrawLine(cr, next_x * nodeDistance, depth * nodeDistance, left_x * nodeDistance,
+            (depth + 1.5) * nodeDistance, 17);
+    }
+
+    // set the x-coordinate for the current node and check if it's red
+    double my_x = next_x++;
+    bool isRed = node.GetType() == typeof(RedBlackTree<int>.Node) ? node.IsRed : false;
+
+    // draw the right subtree and get its x-coordinate
+    if (node.Right != null)
+    {
+        right_x = Draw(cr, node.Right, depth + 1.5);
+        DrawLine(cr, my_x * nodeDistance, depth * nodeDistance, right_x * nodeDistance,
+            (depth + 1.5) * nodeDistance, 17);
+    }
+
+    // get the balance factor for the current node if the tree is AVL
+    int balanceFactor = 0;
+    if (currentTreeType == TreeType.AVL)
+    {
+        balanceFactor = avlTree.GetBalance(node);
+    }
+
+    // draw the current node as a circle with its value, color, and balance factor (if applicable)
+    DrawCircle(cr, my_x * nodeDistance, depth * nodeDistance, 17, node.Value.ToString(), isRed, balanceFactor);
+
+    return my_x;
+}
+
     void DrawLine(Context cr, double x1, double y1, double x2, double y2, double radius)
     {
         // Calculate the angle of the line
@@ -578,12 +650,15 @@ private void CreateMessageDialog(string message)
         cr.Stroke();
         cr.NewPath(); // Reset the current point
     }
-    void DrawCircle(Context cr, double x, double y, double radius, string text, bool isRed = false, int balanceFactor = 0)
+
+    void DrawCircle(Context cr, double x, double y, double radius, string text, bool isRed = false,
+        int balanceFactor = 0)
     {
         switch (currentTreeType)
         {
             case TreeType.RedBlack:
-                cr.SetSourceRGB(isRed ? 1 : 0, 0, 0); // Red color for Red-Black Tree red nodes, black for the black nodes
+                cr.SetSourceRGB(isRed ? 1 : 0, 0,
+                    0); // Red color for Red-Black Tree red nodes, black for the black nodes
                 break;
             case TreeType.AVL:
             default:
@@ -641,6 +716,7 @@ private void CreateMessageDialog(string message)
             cr.ShowText(balanceText);
         }
     }
+
     public static void Main()
     {
         Application.Init();
