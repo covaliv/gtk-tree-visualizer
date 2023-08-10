@@ -144,41 +144,45 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
     }
 
     // These methods perform a right or left rotation at a node, updating the heights of the nodes and returning the new root node.
-    private Node RotateRight(Node y)
-    {
-        updatesLog.AppendLine($"Rotating right at node {y.Value}.");
+private Node RotateRight(Node y)
+{
+    updatesLog.AppendLine($"Rotating right at node {y.Value}.");
 
-        Node x = y.Left!;
-        Node T2 = x.Right!;
+    Node x = y.Left!; // set x to y's left child
+    Node T2 = x.Right!; // set T2 to x's right child
 
-        x.Right = y;
-        y.Left = T2;
+    // perform the rotation
+    x.Right = y;
+    y.Left = T2;
 
-        y.Height = 1 + Math.Max(Height(y.Left), Height(y.Right));
-        x.Height = 1 + Math.Max(Height(x.Left), Height(x.Right));
+    // update the heights of the nodes
+    y.Height = 1 + Math.Max(Height(y.Left), Height(y.Right));
+    x.Height = 1 + Math.Max(Height(x.Left), Height(x.Right));
 
-        updatesLog.AppendLine($"Rotation right complete. New heights: Node {y.Value} height {y.Height}, Node {x.Value} height {x.Height}.");
+    updatesLog.AppendLine($"Rotation right complete. New heights: Node {y.Value} height {y.Height}, Node {x.Value} height {x.Height}.");
 
-        return x;
-    }
+    return x; // return the new root of the subtree
+}
 
-    private Node RotateLeft(Node x)
-    {
-        updatesLog.AppendLine($"Rotating left at node {x.Value}.");
+private Node RotateLeft(Node x)
+{
+    updatesLog.AppendLine($"Rotating left at node {x.Value}.");
 
-        Node y = x.Right!;
-        Node T2 = y.Left!;
+    Node y = x.Right!; // set y to x's right child
+    Node T2 = y.Left!; // set T2 to y's left child
 
-        y.Left = x;
-        x.Right = T2;
+    // perform the rotation
+    y.Left = x;
+    x.Right = T2;
 
-        x.Height = 1 + Math.Max(Height(x.Left), Height(x.Right));
-        y.Height = 1 + Math.Max(Height(y.Left), Height(y.Right));
+    // update the heights of the nodes
+    x.Height = 1 + Math.Max(Height(x.Left), Height(x.Right));
+    y.Height = 1 + Math.Max(Height(y.Left), Height(y.Right));
 
-        updatesLog.AppendLine($"Rotation left complete. New heights: Node {x.Value} height {x.Height}, Node {y.Value} height {y.Height}.");
+    updatesLog.AppendLine($"Rotation left complete. New heights: Node {x.Value} height {x.Height}, Node {y.Value} height {y.Height}.");
 
-        return y;
-    }
+    return y; // return the new root of the subtree
+}
 
     // This method deletes a value from the tree.
     public void Delete(T value)
@@ -191,100 +195,100 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
 
     // This helper method deletes a value from the tree, automatically performing rotations to keep the tree balanced.
     private Node Delete(Node node, T value)
+{
+    if (node == null) // if the node is null, the value is not found
     {
-        if (node == null)
-        {
-            updatesLog.AppendLine($"Node with value {value} not found, nothing to delete.");
-            return node!;
-        }
-
-        int comparison = value.CompareTo(node.Value);
-
-        if (comparison < 0)
-        {
-            updatesLog.AppendLine($"Value {value} is less than {node.Value}, moving left.");
-            node.Left = Delete(node.Left!, value);
-        }
-        else if (comparison > 0)
-        {
-            updatesLog.AppendLine($"Value {value} is greater than {node.Value}, moving right.");
-            node.Right = Delete(node.Right!, value);
-        }
-        else
-        {
-            if (node.Left == null || node.Right == null)
-            {
-                Node temp = null!;
-                if (temp == node.Left)
-                {
-                    temp = node.Right!;
-                }
-                else
-                {
-                    temp = node.Left!;
-                }
-
-                if (temp == null)
-                {
-                    node = null!;
-                }
-                else
-                {
-                    node = temp;
-                }
-            }
-            else
-            {
-                Node temp = GetMinNode(node.Right);
-                node.Value = temp.Value;
-                node.Right = Delete(node.Right, temp.Value);
-            }
-        }
-
-        if (node == null)
-        {
-            return node!;
-        }
-
-        // After deletion, we update the height and balance of the node.
-        // Depending on the balance, different rotations are performed.
-        node.Height = 1 + Math.Max(Height(node.Left), Height(node.Right));
-        updatesLog.AppendLine($"Updated height of node {node.Value} to {node.Height}.");
-        int balance = GetBalance(node);
-        updatesLog.AppendLine($"Balance of node {node.Value} is {balance}.");
-
-        if (balance > 1)
-        {
-            if (GetBalance(node.Left) >= 0)
-            {
-                updatesLog.AppendLine($"Left-heavy imbalance detected at node {node.Value}. Performing right rotation.");
-                return RotateRight(node);
-            }
-            else
-            {
-                updatesLog.AppendLine($"Left-right imbalance detected at node {node.Value}. Performing left-right rotation.");
-                node.Left = RotateLeft(node.Left!);
-                return RotateRight(node);
-            }
-        }
-
-        if (balance < -1)
-        {
-            if (GetBalance(node.Right) <= 0)
-            {
-                updatesLog.AppendLine($"Right-heavy imbalance detected at node {node.Value}. Performing left rotation.");
-                return RotateLeft(node);
-            }
-            else
-            {
-                updatesLog.AppendLine($"Right-left imbalance detected at node {node.Value}. Performing right-left rotation.");
-                node.Right = RotateRight(node.Right!);
-                return RotateLeft(node);
-            }
-        }
-
-        return node;
+        updatesLog.AppendLine($"Node with value {value} not found, nothing to delete.");
+        return node!;
     }
+
+    int comparison = value.CompareTo(node.Value); // compare the value to the node's value
+
+    if (comparison < 0) // if the value is less than the node's value, move left
+    {
+        updatesLog.AppendLine($"Value {value} is less than {node.Value}, moving left.");
+        node.Left = Delete(node.Left!, value);
+    }
+    else if (comparison > 0) // if the value is greater than the node's value, move right
+    {
+        updatesLog.AppendLine($"Value {value} is greater than {node.Value}, moving right.");
+        node.Right = Delete(node.Right!, value);
+    }
+    else // if the value is equal to the node's value, delete the node
+    {
+        if (node.Left == null || node.Right == null) // if the node has one or no children
+        {
+            Node temp = null!;
+            if (temp == node.Left) // if the node has a left child
+            {
+                temp = node.Right!; // set temp to the right child
+            }
+            else // if the node has a right child or no children
+            {
+                temp = node.Left!; // set temp to the left child
+            }
+
+            if (temp == null) // if the node has no children
+            {
+                node = null!; // set the node to null
+            }
+            else // if the node has one child
+            {
+                node = temp; // set the node to the child
+            }
+        }
+        else // if the node has two children
+        {
+            Node temp = GetMinNode(node.Right); // get the minimum node in the right subtree
+            node.Value = temp.Value; // set the node's value to the minimum node's value
+            node.Right = Delete(node.Right, temp.Value); // delete the minimum node
+        }
+    }
+
+    if (node == null) // if the node is null, return null
+    {
+        return node!;
+    }
+
+    // After deletion, we update the height and balance of the node.
+    // Depending on the balance, different rotations are performed.
+    node.Height = 1 + Math.Max(Height(node.Left), Height(node.Right));
+    updatesLog.AppendLine($"Updated height of node {node.Value} to {node.Height}.");
+    int balance = GetBalance(node);
+    updatesLog.AppendLine($"Balance of node {node.Value} is {balance}.");
+
+    if (balance > 1) // if the node is left-heavy
+    {
+        if (GetBalance(node.Left) >= 0) // if the node's left child is left-heavy or balanced
+        {
+            updatesLog.AppendLine($"Left-heavy imbalance detected at node {node.Value}. Performing right rotation.");
+            return RotateRight(node); // perform a right rotation
+        }
+        else // if the node's left child is right-heavy
+        {
+            updatesLog.AppendLine($"Left-right imbalance detected at node {node.Value}. Performing left-right rotation.");
+            node.Left = RotateLeft(node.Left!); // perform a left rotation on the node's left child
+            return RotateRight(node); // perform a right rotation on the node
+        }
+    }
+
+    if (balance < -1) // if the node is right-heavy
+    {
+        if (GetBalance(node.Right) <= 0) // if the node's right child is right-heavy or balanced
+        {
+            updatesLog.AppendLine($"Right-heavy imbalance detected at node {node.Value}. Performing left rotation.");
+            return RotateLeft(node); // perform a left rotation
+        }
+        else // if the node's right child is left-heavy
+        {
+            updatesLog.AppendLine($"Right-left imbalance detected at node {node.Value}. Performing right-left rotation.");
+            node.Right = RotateRight(node.Right!); // perform a right rotation on the node's right child
+            return RotateLeft(node); // perform a left rotation on the node
+        }
+    }
+
+    return node; // return the node
+}
 
     // This helper method finds the node with the minimum value in the subtree rooted at a given node.
     private Node GetMinNode(Node node)
