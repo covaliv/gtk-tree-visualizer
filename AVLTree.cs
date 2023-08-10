@@ -1,13 +1,20 @@
 using System.Text;
 
+// This class represents an AVL tree, a type of binary search tree that automatically remains balanced.
 public class AVLTree<T> : Tree<T> where T : IComparable<T>
 {
+    // This property logs all the updates done during AVL tree operations.
     public StringBuilder updatesLog = new StringBuilder();
+
+    // This class represents a node in the AVL tree.
     public class Node : Tree<T>.Node
     {
+        // This property holds the value of the node.
         public T Value { get; set; }
+        // These properties point to the left and right child nodes.
         public Node? Left { get; set; }
         public Node? Right { get; set; }
+        // This property holds the height of the node.
         public int Height { get; set; }
 
         Tree<T>.Node? Tree<T>.Node.Left
@@ -20,6 +27,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
             get => Right;
         }
 
+        // This constructor initializes a new node with a given value and a height of 1.
         public Node(T value)
         {
             Value = value;
@@ -27,6 +35,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         }
     }
 
+    // This property points to the root node of the tree.
     private Node? root;
 
     Tree<T>.Node? Tree<T>.Root => root;
@@ -37,13 +46,16 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         private set { root = value; }
     }
 
+    // This method inserts a new value into the tree.
     public void Insert(T value)
     {
         updatesLog = new StringBuilder();
         updatesLog.AppendLine($"Inserting value {value} into the tree.");
+        // The root node might get replaced during balancing, so we update it here.
         root = Insert(root!, value);
     }
 
+    // This helper method inserts a new value into the tree, automatically performing rotations to keep the tree balanced.
     private Node Insert(Node node, T value)
     {
         if (node == null)
@@ -69,11 +81,13 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
             return node;
         }
 
+        // After insertion, the node's height is updated and the node's balance is checked.
         node.Height = 1 + Math.Max(Height(node.Left), Height(node.Right));
         updatesLog.AppendLine($"Updated height of node {node.Value} to {node.Height}.");
         int balance = GetBalance(node);
         updatesLog.AppendLine($"Balance of node {node.Value} is {balance}.");
 
+        // Depending on the balance, different rotations are performed.
         if (balance > 1)
         {
             if (value.CompareTo(node.Left!.Value) < 0)
@@ -107,6 +121,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         return node;
     }
 
+    // This method returns the height of a node, treating null as having a height of 0.
     private int Height(Node? node)
     {
         if (node == null)
@@ -117,6 +132,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         return node.Height;
     }
 
+    // This method returns the balance of a node, defined as the height of the left child minus the height of the right child.
     public int GetBalance(Node? node)
     {
         if (node == null)
@@ -127,6 +143,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         return Height(node.Left) - Height(node.Right);
     }
 
+    // These methods perform a right or left rotation at a node, updating the heights of the nodes and returning the new root node.
     private Node RotateRight(Node y)
     {
         updatesLog.AppendLine($"Rotating right at node {y.Value}.");
@@ -163,13 +180,16 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         return y;
     }
 
+    // This method deletes a value from the tree.
     public void Delete(T value)
     {
         updatesLog = new StringBuilder();
         updatesLog.AppendLine($"Deleting value {value} from the tree.");
+        // The root node might get replaced during balancing, so we update it here.
         root = Delete(root!, value);
     }
 
+    // This helper method deletes a value from the tree, automatically performing rotations to keep the tree balanced.
     private Node Delete(Node node, T value)
     {
         if (node == null)
@@ -226,6 +246,8 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
             return node!;
         }
 
+        // After deletion, we update the height and balance of the node.
+        // Depending on the balance, different rotations are performed.
         node.Height = 1 + Math.Max(Height(node.Left), Height(node.Right));
         updatesLog.AppendLine($"Updated height of node {node.Value} to {node.Height}.");
         int balance = GetBalance(node);
@@ -264,6 +286,7 @@ public class AVLTree<T> : Tree<T> where T : IComparable<T>
         return node;
     }
 
+    // This helper method finds the node with the minimum value in the subtree rooted at a given node.
     private Node GetMinNode(Node node)
     {
         Node current = node;
