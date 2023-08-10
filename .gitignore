@@ -1,4 +1,4 @@
-# .gitignor for C# projects
+# .gitignore for C# projects
 
 # Ignore build output directories
 bin/
@@ -18,3 +18,6 @@ obj/
 *.tmp
 *.swp
 *~e
+
+# Ignore Rider files
+.idea/
