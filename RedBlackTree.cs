@@ -7,7 +7,11 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
     public StringBuilder updatesLog { get; private set; } = new StringBuilder();
 
     // Enumeration for node color.
-    public enum Color { Red, Black }
+    public enum Color
+    {
+        Red,
+        Black
+    }
 
     // Class representing a node in the Red-Black Tree.
     public class Node : Tree<T>.Node
@@ -53,176 +57,191 @@ public class RedBlackTree<T> : Tree<T> where T : IComparable<T>
     }
 
     // Method to insert a value into the tree.
-public void Insert(T value)
-{
-    updatesLog = new StringBuilder(); // initialize updatesLog to an empty string
-    if (root == null) // if the tree is empty
+    public void Insert(T value)
     {
-        root = new Node(value) { NodeColor = Color.Black }; // create a new node with the given value and set it as the root
-        updatesLog.AppendLine($"Inserted {value} as root."); // add a log entry for the insertion
-    }
-    else // if the tree is not empty
-    {
-        Node currentNode = root; // start at the root
-        Node newNode = new Node(value); // create a new node with the given value
-
-        while (true) // loop until we insert the new node
+        updatesLog = new StringBuilder(); // initialize updatesLog to an empty string
+        if (root == null) // if the tree is empty
         {
-            int comparison = value.CompareTo(currentNode.Value); // compare the value to the current node's value
-            if (comparison < 0) // if the value is less than the current node's value
-            {
-                if (currentNode.Left == null) // if the current node has no left child
-                {
-                    currentNode.Left = newNode; // set the new node as the current node's left child
-                    newNode.Parent = currentNode; // set the current node as the new node's parent
-                    updatesLog.AppendLine($"Inserted {value} as left child of {currentNode.Value}."); // add a log entry for the insertion
-                    break; // exit the loop
-                }
-                currentNode = currentNode.Left; // move to the current node's left child
-            }
-            else if (comparison > 0) // if the value is greater than the current node's value
-            {
-                if (currentNode.Right == null) // if the current node has no right child
-                {
-                    currentNode.Right = newNode; // set the new node as the current node's right child
-                    newNode.Parent = currentNode; // set the current node as the new node's parent
-                    updatesLog.AppendLine($"Inserted {value} as right child of {currentNode.Value}."); // add a log entry for the insertion
-                    break; // exit the loop
-                }
-                currentNode = currentNode.Right; // move to the current node's right child
-            }
-            else // if the value is equal to the current node's value
-            {
-                updatesLog.AppendLine($"Value {value} already exists in the tree."); // add a log entry for the duplicate value
-                return; // exit the method
-            }
+            root = new Node(value)
+                { NodeColor = Color.Black }; // create a new node with the given value and set it as the root
+            updatesLog.AppendLine($"Inserted {value} as root."); // add a log entry for the insertion
         }
+        else // if the tree is not empty
+        {
+            Node currentNode = root; // start at the root
+            Node newNode = new Node(value); // create a new node with the given value
 
-        FixTreeAfterInsert(newNode); // fix the tree after the insertion
+            while (true) // loop until we insert the new node
+            {
+                int comparison = value.CompareTo(currentNode.Value); // compare the value to the current node's value
+                if (comparison < 0) // if the value is less than the current node's value
+                {
+                    if (currentNode.Left == null) // if the current node has no left child
+                    {
+                        currentNode.Left = newNode; // set the new node as the current node's left child
+                        newNode.Parent = currentNode; // set the current node as the new node's parent
+                        updatesLog.AppendLine(
+                            $"Inserted {value} as left child of {currentNode.Value}."); // add a log entry for the insertion
+                        break; // exit the loop
+                    }
+
+                    currentNode = currentNode.Left; // move to the current node's left child
+                }
+                else if (comparison > 0) // if the value is greater than the current node's value
+                {
+                    if (currentNode.Right == null) // if the current node has no right child
+                    {
+                        currentNode.Right = newNode; // set the new node as the current node's right child
+                        newNode.Parent = currentNode; // set the current node as the new node's parent
+                        updatesLog.AppendLine(
+                            $"Inserted {value} as right child of {currentNode.Value}."); // add a log entry for the insertion
+                        break; // exit the loop
+                    }
+
+                    currentNode = currentNode.Right; // move to the current node's right child
+                }
+                else // if the value is equal to the current node's value
+                {
+                    updatesLog.AppendLine(
+                        $"Value {value} already exists in the tree."); // add a log entry for the duplicate value
+                    return; // exit the method
+                }
+            }
+
+            FixTreeAfterInsert(newNode); // fix the tree after the insertion
+        }
     }
-}
 
     // This function fixes the violations caused by BST insertion.
-private void FixTreeAfterInsert(Node node)
-{
-    while (node != root && node.Parent!.NodeColor == Color.Red) // loop while the node's parent is red and the node is not the root
+    private void FixTreeAfterInsert(Node node)
     {
-        if (node.Parent == node.Parent.Parent!.Left) // if the node's parent is the left child of its grandparent
+        while (node != root &&
+               node.Parent!.NodeColor == Color.Red) // loop while the node's parent is red and the node is not the root
         {
-            Node uncle = node.Parent.Parent.Right!; // get the node's uncle (the right child of its grandparent)
-            if (uncle != null && uncle.NodeColor == Color.Red) // if the uncle is red
+            if (node.Parent == node.Parent.Parent!.Left) // if the node's parent is the left child of its grandparent
             {
-                updatesLog.AppendLine($"Uncle {uncle.Value} is red. Recoloring nodes."); // add a log entry for the recoloring
-                node.Parent.NodeColor = Color.Black; // set the node's parent to black
-                uncle.NodeColor = Color.Black; // set the uncle to black
-                node.Parent.Parent.NodeColor = Color.Red; // set the grandparent to red
-                node = node.Parent.Parent; // move up the tree to the grandparent
-            }
-            else // if the uncle is black or null
-            {
-                if (node == node.Parent.Right) // if the node is the right child of its parent
+                Node uncle = node.Parent.Parent.Right!; // get the node's uncle (the right child of its grandparent)
+                if (uncle != null && uncle.NodeColor == Color.Red) // if the uncle is red
                 {
-                    updatesLog.AppendLine($"Node {node.Value} is a right child. Performing left rotation."); // add a log entry for the left rotation
-                    node = node.Parent; // move up the tree to the node's parent
-                    RotateLeft(node); // perform a left rotation on the node's parent
+                    updatesLog.AppendLine(
+                        $"Uncle {uncle.Value} is red. Recoloring nodes."); // add a log entry for the recoloring
+                    node.Parent.NodeColor = Color.Black; // set the node's parent to black
+                    uncle.NodeColor = Color.Black; // set the uncle to black
+                    node.Parent.Parent.NodeColor = Color.Red; // set the grandparent to red
+                    node = node.Parent.Parent; // move up the tree to the grandparent
                 }
-                updatesLog.AppendLine($"Recoloring nodes and performing right rotation."); // add a log entry for the recoloring and right rotation
-                node.Parent!.NodeColor = Color.Black; // set the node's parent to black
-                node.Parent.Parent!.NodeColor = Color.Red; // set the grandparent to red
-                RotateRight(node.Parent.Parent); // perform a right rotation on the grandparent
-            }
-        }
-        else // if the node's parent is the right child of its grandparent
-        {
-            Node uncle = node.Parent.Parent.Left!; // get the node's uncle (the left child of its grandparent)
-            if (uncle != null && uncle.NodeColor == Color.Red) // if the uncle is red
-            {
-                updatesLog.AppendLine($"Uncle {uncle.Value} is red. Recoloring nodes."); // add a log entry for the recoloring
-                node.Parent.NodeColor = Color.Black; // set the node's parent to black
-                uncle.NodeColor = Color.Black; // set the uncle to black
-                node.Parent.Parent.NodeColor = Color.Red; // set the grandparent to red
-                node = node.Parent.Parent; // move up the tree to the grandparent
-            }
-            else // if the uncle is black or null
-            {
-                if (node == node.Parent.Left) // if the node is the left child of its parent
+                else // if the uncle is black or null
                 {
-                    updatesLog.AppendLine($"Node {node.Value} is a left child. Performing right rotation."); // add a log entry for the right rotation
-                    node = node.Parent; // move up the tree to the node's parent
-                    RotateRight(node); // perform a right rotation on the node's parent
-                }
-                updatesLog.AppendLine($"Recoloring nodes and performing left rotation."); // add a log entry for the recoloring and left rotation
-                node.Parent!.NodeColor = Color.Black; // set the node's parent to black
-                node.Parent.Parent!.NodeColor = Color.Red; // set the grandparent to red
-                RotateLeft(node.Parent.Parent); // perform a left rotation on the grandparent
-            }
-        }
-    }
+                    if (node == node.Parent.Right) // if the node is the right child of its parent
+                    {
+                        updatesLog.AppendLine(
+                            $"Node {node.Value} is a right child. Performing left rotation."); // add a log entry for the left rotation
+                        node = node.Parent; // move up the tree to the node's parent
+                        RotateLeft(node); // perform a left rotation on the node's parent
+                    }
 
-    root!.NodeColor = Color.Black; // set the root to black
-}
+                    updatesLog.AppendLine(
+                        $"Recoloring nodes and performing right rotation."); // add a log entry for the recoloring and right rotation
+                    node.Parent!.NodeColor = Color.Black; // set the node's parent to black
+                    node.Parent.Parent!.NodeColor = Color.Red; // set the grandparent to red
+                    RotateRight(node.Parent.Parent); // perform a right rotation on the grandparent
+                }
+            }
+            else // if the node's parent is the right child of its grandparent
+            {
+                Node uncle = node.Parent.Parent.Left!; // get the node's uncle (the left child of its grandparent)
+                if (uncle != null && uncle.NodeColor == Color.Red) // if the uncle is red
+                {
+                    updatesLog.AppendLine(
+                        $"Uncle {uncle.Value} is red. Recoloring nodes."); // add a log entry for the recoloring
+                    node.Parent.NodeColor = Color.Black; // set the node's parent to black
+                    uncle.NodeColor = Color.Black; // set the uncle to black
+                    node.Parent.Parent.NodeColor = Color.Red; // set the grandparent to red
+                    node = node.Parent.Parent; // move up the tree to the grandparent
+                }
+                else // if the uncle is black or null
+                {
+                    if (node == node.Parent.Left) // if the node is the left child of its parent
+                    {
+                        updatesLog.AppendLine(
+                            $"Node {node.Value} is a left child. Performing right rotation."); // add a log entry for the right rotation
+                        node = node.Parent; // move up the tree to the node's parent
+                        RotateRight(node); // perform a right rotation on the node's parent
+                    }
+
+                    updatesLog.AppendLine(
+                        $"Recoloring nodes and performing left rotation."); // add a log entry for the recoloring and left rotation
+                    node.Parent!.NodeColor = Color.Black; // set the node's parent to black
+                    node.Parent.Parent!.NodeColor = Color.Red; // set the grandparent to red
+                    RotateLeft(node.Parent.Parent); // perform a left rotation on the grandparent
+                }
+            }
+        }
+
+        root!.NodeColor = Color.Black; // set the root to black
+    }
 
     // A utility function to do left rotation.
-private void RotateLeft(Node node)
-{
-    updatesLog.AppendLine($"Rotated left around {node.Value}."); // add a log entry for the rotation
-    Node rightChild = node.Right!; // get the node's right child
-    node.Right = rightChild!.Left; // set the node's right child to the right child's left child
-
-    if (rightChild.Left != null) // if the right child's left child is not null
+    private void RotateLeft(Node node)
     {
-        rightChild.Left.Parent = node; // set the right child's left child's parent to the node
-    }
+        updatesLog.AppendLine($"Rotated left around {node.Value}."); // add a log entry for the rotation
+        Node rightChild = node.Right!; // get the node's right child
+        node.Right = rightChild!.Left; // set the node's right child to the right child's left child
 
-    rightChild.Parent = node.Parent; // set the right child's parent to the node's parent
+        if (rightChild.Left != null) // if the right child's left child is not null
+        {
+            rightChild.Left.Parent = node; // set the right child's left child's parent to the node
+        }
 
-    if (node.Parent == null) // if the node is the root
-    {
-        root = rightChild; // set the right child as the new root
-    }
-    else if (node == node.Parent.Left) // if the node is the left child of its parent
-    {
-        node.Parent.Left = rightChild; // set the right child as the new left child of the node's parent
-    }
-    else // if the node is the right child of its parent
-    {
-        node.Parent.Right = rightChild; // set the right child as the new right child of the node's parent
-    }
+        rightChild.Parent = node.Parent; // set the right child's parent to the node's parent
 
-    rightChild.Left = node; // set the node as the left child of the right child
-    node.Parent = rightChild; // set the right child as the parent of the node
-}
+        if (node.Parent == null) // if the node is the root
+        {
+            root = rightChild; // set the right child as the new root
+        }
+        else if (node == node.Parent.Left) // if the node is the left child of its parent
+        {
+            node.Parent.Left = rightChild; // set the right child as the new left child of the node's parent
+        }
+        else // if the node is the right child of its parent
+        {
+            node.Parent.Right = rightChild; // set the right child as the new right child of the node's parent
+        }
+
+        rightChild.Left = node; // set the node as the left child of the right child
+        node.Parent = rightChild; // set the right child as the parent of the node
+    }
 
     // A utility function to do right rotation.
-private void RotateRight(Node node)
-{
-    updatesLog.AppendLine($"Rotated right around {node.Value}."); // add a log entry for the rotation
-    Node leftChild = node.Left!; // get the node's left child
-    node.Left = leftChild!.Right; // set the node's left child to the left child's right child
-
-    if (leftChild.Right != null) // if the left child's right child is not null
+    private void RotateRight(Node node)
     {
-        leftChild.Right.Parent = node; // set the left child's right child's parent to the node
-    }
+        updatesLog.AppendLine($"Rotated right around {node.Value}."); // add a log entry for the rotation
+        Node leftChild = node.Left!; // get the node's left child
+        node.Left = leftChild!.Right; // set the node's left child to the left child's right child
 
-    leftChild.Parent = node.Parent; // set the left child's parent to the node's parent
+        if (leftChild.Right != null) // if the left child's right child is not null
+        {
+            leftChild.Right.Parent = node; // set the left child's right child's parent to the node
+        }
 
-    if (node.Parent == null) // if the node is the root
-    {
-        root = leftChild; // set the left child as the new root
-    }
-    else if (node == node.Parent.Right) // if the node is the right child of its parent
-    {
-        node.Parent.Right = leftChild; // set the left child as the new right child of the node's parent
-    }
-    else // if the node is the left child of its parent
-    {
-        node.Parent.Left = leftChild; // set the left child as the new left child of the node's parent
-    }
+        leftChild.Parent = node.Parent; // set the left child's parent to the node's parent
 
-    leftChild.Right = node; // set the node as the right child of the left child
-    node.Parent = leftChild; // set the left child as the parent of the node
-}
+        if (node.Parent == null) // if the node is the root
+        {
+            root = leftChild; // set the left child as the new root
+        }
+        else if (node == node.Parent.Right) // if the node is the right child of its parent
+        {
+            node.Parent.Right = leftChild; // set the left child as the new right child of the node's parent
+        }
+        else // if the node is the left child of its parent
+        {
+            node.Parent.Left = leftChild; // set the left child as the new left child of the node's parent
+        }
+
+        leftChild.Right = node; // set the node as the right child of the left child
+        node.Parent = leftChild; // set the left child as the parent of the node
+    }
 
     // Function to determine the depth of the tree.
     public int Depth()
@@ -281,60 +300,66 @@ private void RotateRight(Node node)
     }
 
     private void DeleteNode(Node nodeToDelete)
-{
-    updatesLog.AppendLine($"Starting deletion process for node with value {nodeToDelete.Value}.");
-
-    // if the node has two children, replace it with the maximum value from its left subtree
-    if (nodeToDelete.Left != null && nodeToDelete.Right != null)
     {
-        Node replacement = GetMaxNode(nodeToDelete.Left);
-        updatesLog.AppendLine($"Node {nodeToDelete.Value} has two children. Replacing with max value {replacement.Value} from left subtree.");
-        nodeToDelete.Value = replacement.Value;
-        nodeToDelete = replacement;
-    }
+        updatesLog.AppendLine($"Starting deletion process for node with value {nodeToDelete.Value}.");
 
-    Node? child = nodeToDelete.Left ?? nodeToDelete.Right; // get the node's child (if it has one)
-
-    if (nodeToDelete.IsRed) // if the node is red, replace it with its child
-    {
-        updatesLog.AppendLine($"Node {nodeToDelete.Value} is red. Replacing with its child.");
-        ReplaceNode(nodeToDelete, child);
-    }
-    else if (child != null && child.IsRed) // if the node is black and its child is red, replace it with its child and recolor it black
-    {
-        updatesLog.AppendLine($"Node {nodeToDelete.Value} is black and has a red child. Replacing with its red child and recoloring it black.");
-        child.NodeColor = Color.Black;
-        ReplaceNode(nodeToDelete, child);
-    }
-    else // if the node is black and its child is black or null
-    {
-        updatesLog.AppendLine($"Node {nodeToDelete.Value} is black and has no red children. Fixing tree after deletion.");
-        Node? sibling = Sibling(nodeToDelete); // get the node's sibling
-
-        if (sibling != null && sibling.IsRed) // if the sibling is red, recolor it and the parent, and rotate
+        // if the node has two children, replace it with the maximum value from its left subtree
+        if (nodeToDelete.Left != null && nodeToDelete.Right != null)
         {
-            updatesLog.AppendLine($"Sibling {sibling.Value} of node {nodeToDelete.Value} is red. Recoloring sibling and parent, and rotating.");
-            nodeToDelete.Parent!.NodeColor = Color.Red;
-            sibling.NodeColor = Color.Black;
-
-            if (nodeToDelete == nodeToDelete.Parent.Left)
-            {
-                RotateLeft(nodeToDelete.Parent);
-            }
-            else
-            {
-                RotateRight(nodeToDelete.Parent);
-            }
+            Node replacement = GetMaxNode(nodeToDelete.Left);
+            updatesLog.AppendLine(
+                $"Node {nodeToDelete.Value} has two children. Replacing with max value {replacement.Value} from left subtree.");
+            nodeToDelete.Value = replacement.Value;
+            nodeToDelete = replacement;
         }
 
-        sibling = Sibling(nodeToDelete); // get the node's sibling again (it may have changed due to rotation)
-        ReplaceNode(nodeToDelete, child); // replace the node with its child
+        Node? child = nodeToDelete.Left ?? nodeToDelete.Right; // get the node's child (if it has one)
 
-        DeleteCase2(child); // fix the tree after deletion
+        if (nodeToDelete.IsRed) // if the node is red, replace it with its child
+        {
+            updatesLog.AppendLine($"Node {nodeToDelete.Value} is red. Replacing with its child.");
+            ReplaceNode(nodeToDelete, child);
+        }
+        else if
+            (child != null &&
+             child.IsRed) // if the node is black and its child is red, replace it with its child and recolor it black
+        {
+            updatesLog.AppendLine(
+                $"Node {nodeToDelete.Value} is black and has a red child. Replacing with its red child and recoloring it black.");
+            child.NodeColor = Color.Black;
+            ReplaceNode(nodeToDelete, child);
+        }
+        else // if the node is black and its child is black or null
+        {
+            updatesLog.AppendLine(
+                $"Node {nodeToDelete.Value} is black and has no red children. Fixing tree after deletion.");
+            Node? sibling = Sibling(nodeToDelete); // get the node's sibling
+
+            if (sibling != null && sibling.IsRed) // if the sibling is red, recolor it and the parent, and rotate
+            {
+                updatesLog.AppendLine(
+                    $"Sibling {sibling.Value} of node {nodeToDelete.Value} is red. Recoloring sibling and parent, and rotating.");
+                nodeToDelete.Parent!.NodeColor = Color.Red;
+                sibling.NodeColor = Color.Black;
+
+                if (nodeToDelete == nodeToDelete.Parent.Left)
+                {
+                    RotateLeft(nodeToDelete.Parent);
+                }
+                else
+                {
+                    RotateRight(nodeToDelete.Parent);
+                }
+            }
+
+            sibling = Sibling(nodeToDelete); // get the node's sibling again (it may have changed due to rotation)
+            ReplaceNode(nodeToDelete, child); // replace the node with its child
+
+            DeleteCase2(child); // fix the tree after deletion
+        }
+
+        updatesLog.AppendLine($"Deleted node with value {nodeToDelete.Value}.");
     }
-
-    updatesLog.AppendLine($"Deleted node with value {nodeToDelete.Value}.");
-}
 
     private Node GetMaxNode(Node node)
     {
@@ -360,91 +385,93 @@ private void RotateRight(Node node)
         }
     }
 
-private void ReplaceNode(Node oldNode, Node? newNode)
-{
-    // replace the old node with the new node
-    if (oldNode.Parent == null) // if the old node is the root
+    private void ReplaceNode(Node oldNode, Node? newNode)
     {
-        root = newNode; // set the new node as the new root
-    }
-    else if (oldNode == oldNode.Parent.Left) // if the old node is the left child of its parent
-    {
-        oldNode.Parent.Left = newNode; // set the new node as the new left child of the old node's parent
-    }
-    else // if the old node is the right child of its parent
-    {
-        oldNode.Parent.Right = newNode; // set the new node as the new right child of the old node's parent
-    }
-
-    // update the parent of the new node
-    if (newNode != null) // if the new node exists
-    {
-        updatesLog.AppendLine($"Replaced node {oldNode.Value} with {newNode.Value}."); // add a log entry for the replacement
-        newNode.Parent = oldNode.Parent; // set the new node's parent to the old node's parent
-    }
-    else // if the new node is null (i.e. the old node was deleted)
-    {
-        updatesLog.AppendLine($"Removed node {oldNode.Value}."); // add a log entry for the removal
-    }
-}
-
-private void DeleteCase2(Node? node)
-{
-    if (node == null) return; // if the node is null, return
-
-    Node? sibling = Sibling(node); // get the node's sibling
-
-    // if the sibling is black and has no red children
-    if (sibling != null && !sibling.IsRed && (sibling.Left == null || !sibling.Left.IsRed) && (sibling.Right == null || !sibling.Right.IsRed))
-    {
-        sibling.NodeColor = Color.Red; // recolor the sibling to red
-
-        if (node.Parent!.IsRed) // if the node's parent is red
+        // replace the old node with the new node
+        if (oldNode.Parent == null) // if the old node is the root
         {
-            node.Parent.NodeColor = Color.Black; // recolor the parent to black
+            root = newNode; // set the new node as the new root
         }
-        else // if the node's parent is black
+        else if (oldNode == oldNode.Parent.Left) // if the old node is the left child of its parent
         {
-            DeleteCase2(node.Parent); // recursively fix the tree for the parent
+            oldNode.Parent.Left = newNode; // set the new node as the new left child of the old node's parent
+        }
+        else // if the old node is the right child of its parent
+        {
+            oldNode.Parent.Right = newNode; // set the new node as the new right child of the old node's parent
+        }
+
+        // update the parent of the new node
+        if (newNode != null) // if the new node exists
+        {
+            updatesLog.AppendLine(
+                $"Replaced node {oldNode.Value} with {newNode.Value}."); // add a log entry for the replacement
+            newNode.Parent = oldNode.Parent; // set the new node's parent to the old node's parent
+        }
+        else // if the new node is null (i.e. the old node was deleted)
+        {
+            updatesLog.AppendLine($"Removed node {oldNode.Value}."); // add a log entry for the removal
         }
     }
-    else // if the sibling is red or has a red child
-    {
-        DeleteCase3(node); // move to case 3
-    }
 
-    updatesLog.AppendLine($"Delete case 2 performed for node {node.Value}."); // add a log entry for the case
-}
+    private void DeleteCase2(Node? node)
+    {
+        if (node == null) return; // if the node is null, return
+
+        Node? sibling = Sibling(node); // get the node's sibling
+
+        // if the sibling is black and has no red children
+        if (sibling != null && !sibling.IsRed && (sibling.Left == null || !sibling.Left.IsRed) &&
+            (sibling.Right == null || !sibling.Right.IsRed))
+        {
+            sibling.NodeColor = Color.Red; // recolor the sibling to red
+
+            if (node.Parent!.IsRed) // if the node's parent is red
+            {
+                node.Parent.NodeColor = Color.Black; // recolor the parent to black
+            }
+            else // if the node's parent is black
+            {
+                DeleteCase2(node.Parent); // recursively fix the tree for the parent
+            }
+        }
+        else // if the sibling is red or has a red child
+        {
+            DeleteCase3(node); // move to case 3
+        }
+
+        updatesLog.AppendLine($"Delete case 2 performed for node {node.Value}."); // add a log entry for the case
+    }
 
     private void DeleteCase3(Node? node)
-{
-    if (node == null) return; // if the node is null, return
-
-    Node? sibling = Sibling(node); // get the node's sibling
-
-    if (sibling != null && !sibling.IsRed) // if the sibling is black
     {
-        if (node == node.Parent!.Left && // if the node is the left child of its parent
-            (sibling.Right == null || !sibling.Right.IsRed) && // if the sibling's right child is black or null
-            sibling.Left != null && sibling.Left.IsRed) // if the sibling's left child is red
-        {
-            sibling.NodeColor = Color.Red; // recolor the sibling to red
-            sibling.Left.NodeColor = Color.Black; // recolor the sibling's left child to black
-            RotateRight(sibling); // rotate the sibling to the right
-        }
-        else if (node == node.Parent.Right && // if the node is the right child of its parent
-                 (sibling.Left == null || !sibling.Left.IsRed) && // if the sibling's left child is black or null
-                 sibling.Right != null && sibling.Right.IsRed) // if the sibling's right child is red
-        {
-            sibling.NodeColor = Color.Red; // recolor the sibling to red
-            sibling.Right.NodeColor = Color.Black; // recolor the sibling's right child to black
-            RotateLeft(sibling); // rotate the sibling to the left
-        }
-    }
+        if (node == null) return; // if the node is null, return
 
-    DeleteCase4(node); // move to case 4
-    updatesLog.AppendLine($"Delete case 3 performed for node {node.Value}."); // add a log entry for the case
-}
+        Node? sibling = Sibling(node); // get the node's sibling
+
+        if (sibling != null && !sibling.IsRed) // if the sibling is black
+        {
+            if (node == node.Parent!.Left && // if the node is the left child of its parent
+                (sibling.Right == null || !sibling.Right.IsRed) && // if the sibling's right child is black or null
+                sibling.Left != null && sibling.Left.IsRed) // if the sibling's left child is red
+            {
+                sibling.NodeColor = Color.Red; // recolor the sibling to red
+                sibling.Left.NodeColor = Color.Black; // recolor the sibling's left child to black
+                RotateRight(sibling); // rotate the sibling to the right
+            }
+            else if (node == node.Parent.Right && // if the node is the right child of its parent
+                     (sibling.Left == null || !sibling.Left.IsRed) && // if the sibling's left child is black or null
+                     sibling.Right != null && sibling.Right.IsRed) // if the sibling's right child is red
+            {
+                sibling.NodeColor = Color.Red; // recolor the sibling to red
+                sibling.Right.NodeColor = Color.Black; // recolor the sibling's right child to black
+                RotateLeft(sibling); // rotate the sibling to the left
+            }
+        }
+
+        DeleteCase4(node); // move to case 4
+        updatesLog.AppendLine($"Delete case 3 performed for node {node.Value}."); // add a log entry for the case
+    }
 
     private void DeleteCase4(Node? node)
     {

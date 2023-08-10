@@ -5,6 +5,7 @@ public class BinarySearchTree<T> : Tree<T> where T : IComparable<T>
 {
     // This property holds a log of updates made during BST operations.
     public StringBuilder updatesLog { get; private set; } = new StringBuilder();
+
     // This class represents a node in the BST.
     public class Node : Tree<T>.Node
     {
@@ -111,7 +112,8 @@ public class BinarySearchTree<T> : Tree<T> where T : IComparable<T>
         {
             if (node.Left == null)
             {
-                updatesLog.AppendLine($"Node {node.Value} is a leaf node or has only a right child. Replacing it with its right child.");
+                updatesLog.AppendLine(
+                    $"Node {node.Value} is a leaf node or has only a right child. Replacing it with its right child.");
                 return node.Right;
             }
             else if (node.Right == null)
@@ -121,7 +123,8 @@ public class BinarySearchTree<T> : Tree<T> where T : IComparable<T>
             }
 
             T minValue = MinValue(node.Right);
-            updatesLog.AppendLine($"Node {node.Value} has two children. Replacing it with the smallest value {minValue} in its right subtree.");
+            updatesLog.AppendLine(
+                $"Node {node.Value} has two children. Replacing it with the smallest value {minValue} in its right subtree.");
             node.Value = minValue;
 
             node.Right = Delete(node.Right, node.Value);
@@ -139,6 +142,7 @@ public class BinarySearchTree<T> : Tree<T> where T : IComparable<T>
             minValue = node.Left.Value;
             node = node.Left;
         }
+
         return minValue;
     }
 }
